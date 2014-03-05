@@ -55,7 +55,7 @@
 }
 
 - (void)setAnnotations:(NSArray *)annotations {
-    [self.mapView removeAnnotations:[self.annotationTree.annotations allObjects]];
+    [self.mapView removeAnnotations:self.annotationTree.annotationsX];
     self.annotationTree = [[KPAnnotationTree alloc] initWithAnnotations:annotations];
     [self _updateVisibileMapAnnotationsOnMapView:NO];
 }
@@ -189,7 +189,7 @@
     NSArray *oldClusters = [[[self.mapView annotationsInMapRect:bigRect] allObjects] kp_filter:^BOOL(id annotation) {
         
         if([annotation isKindOfClass:[KPAnnotation class]]){
-            return ([self.annotationTree.annotations containsObject:[[(KPAnnotation*)annotation annotations] anyObject]]);
+            return ([self.annotationTree.annotationsX containsObject:[[(KPAnnotation*)annotation annotations] anyObject]]);
         }
         else {
             return NO;

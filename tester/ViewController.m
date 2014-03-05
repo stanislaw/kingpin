@@ -14,7 +14,7 @@
 #import "KPAnnotation.h"
 #import "KPTreeController.h"
 
-static const int kNumberOfTestAnnotations = 500;
+static const int kNumberOfTestAnnotations = 5000;
 
 @interface ViewController ()
 
@@ -35,7 +35,7 @@ static const int kNumberOfTestAnnotations = 500;
     self.treeController.delegate = self;
     self.treeController.animationOptions = UIViewAnimationOptionCurveEaseOut;
     [self.treeController setAnnotations:[self annotations]];
-    
+
     self.treeController2 = [[KPTreeController alloc] initWithMapView:self.mapView];
     self.treeController2.delegate = self;
     self.treeController2.animationOptions = UIViewAnimationOptionCurveEaseOut;
@@ -76,7 +76,7 @@ static const int kNumberOfTestAnnotations = 500;
     CLLocationCoordinate2D nycCoord = [self nycCoord];
     CLLocationCoordinate2D sfCoord = [self sfCoord];
     
-    for (int i=0; i< kNumberOfTestAnnotations / 2; i++) {
+    for (int i=0; i< kNumberOfTestAnnotations; i++) {
         
         float latAdj = ((random() % 100) / 1000.f);
         float lngAdj = ((random() % 100) / 1000.f);

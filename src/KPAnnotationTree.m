@@ -27,7 +27,7 @@
 @interface KPAnnotationTree ()
 
 @property (nonatomic) KPTreeNode *root;
-@property (nonatomic, readwrite) NSSet *annotations;
+
 
 @end
 
@@ -38,8 +38,8 @@
     self = [super init];
     
     if(self){
-        self.annotations = [NSSet setWithArray:annotations];
-        self.root = [self buildTree:annotations level:0];
+        //self.root = [self buildTree:annotations level:0];
+        self.root = [self buildTree:annotations];
     }
     
     return self;
@@ -120,6 +120,75 @@
 
 
 #pragma mark - Tree Building (Private)
+
+- (KPTreeNode *)buildTree:(NSArray *)annotations {
+
+    NSInteger count = [annotations count];
+
+    if(count == 0){
+        return nil;
+    }
+
+    self.annotationsX = [self sortedAnnotations:annotations sortY:NO];
+    self.annotationsY = [self sortedAnnotations:annotations sortY:YES];
+    self.annotationsIndexesX = [NSMutableArray arrayWithCapacity:count];
+    self.annotationsIndexesY = [NSMutableArray arrayWithCapacity:count];
+
+    [self.annotationsX enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        [self.annotationsIndexesX addObject:@(idx)];
+    }];
+
+    [self.annotationsY enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        [self.annotationsIndexesY addObject:@(idx)];
+    }];
+
+    return [self buildTree2:self.annotationsIndexesY level:0];
+}
+
+- (KPTreeNode *)buildTree2:(NSArray *)annotationsIndexes level:(NSInteger)curLevel {
+
+    NSInteger count = [annotationsIndexes count];
+
+    NSAssert(count > 0, nil);
+
+    BOOL Y_or_X = curLevel % 2;
+
+    KPTreeNode *n = [[KPTreeNode alloc] init];
+
+    NSInteger medianIdx = count / 2;
+
+    NSNumber *annotationIndex = [annotationsIndexes objectAtIndex:medianIdx];
+
+    if (Y_or_X) {
+        n.annotation = [self.annotationsY objectAtIndex:annotationIndex];
+    } else {
+        n.annotation = [self.annotationsX objectAtIndex:annotationIndex];
+    }
+
+    n.mapPoint = MKMapPointForCoordinate(n.annotation.coordinate);
+
+    NSArray *leftIndexes = [sortedAnnotations subarrayWithRange:NSMakeRange(0, medianIdx)];
+
+
+
+
+
+    //NSArray *rightIndexes = [sortedAnnotations subarrayWithRange:NSMakeRange((medianIdx + 1), (count - (medianIdx + 1)));
+
+
+
+    if (count < 2) {
+        return nil;
+    }
+
+    n.left = [self buildTree:leftIndexes level:(curLevel + 1)];
+
+
+    n.right = [self buildTree:rightIndexes level:(curLevel + 1)];
+    
+    
+    return n;
+}
 
 
 - (KPTreeNode *)buildTree:(NSArray *)annotations level:(NSInteger)curLevel {

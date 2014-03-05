@@ -20,10 +20,14 @@
 
 @interface KPAnnotationTree : NSObject
 
-@property (nonatomic, readonly) NSSet *annotations;
-
 - (id)initWithAnnotations:(NSArray *)annotations;
 
 - (NSArray *)annotationsInMapRect:(MKMapRect)rect;
+
+@property (nonatomic, strong) NSArray *annotationsX;
+@property (nonatomic, strong) NSArray *annotationsY;
+@property (nonatomic, strong) NSMutableArray *annotationsIndexesX;
+@property (nonatomic, strong) NSMutableArray *annotationsIndexesY;
+
 
 @end
