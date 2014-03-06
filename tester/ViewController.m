@@ -14,7 +14,7 @@
 #import "KPAnnotation.h"
 #import "KPTreeController.h"
 
-static const int kNumberOfTestAnnotations = 500;
+static const int kNumberOfTestAnnotations = 20000;
 
 @interface ViewController ()
 
@@ -84,11 +84,16 @@ static const int kNumberOfTestAnnotations = 500;
         TestAnnotation *a1 = [[TestAnnotation alloc] init];
         a1.coordinate = CLLocationCoordinate2DMake(nycCoord.latitude + latAdj, 
                                                    nycCoord.longitude + lngAdj);
+        a1.mapPoint = MKMapPointForCoordinate([a1 coordinate]);
+
         [annotations addObject:a1];
         
         TestAnnotation *a2 = [[TestAnnotation alloc] init];
         a2.coordinate = CLLocationCoordinate2DMake(sfCoord.latitude + latAdj,
                                                    sfCoord.longitude + lngAdj);
+
+        a2.mapPoint = MKMapPointForCoordinate([a2 coordinate]);
+
         [annotations addObject:a2];
 
     }

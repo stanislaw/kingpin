@@ -13,5 +13,7 @@
 
 @property (nonatomic, assign) NSInteger level;
 @property (nonatomic, assign) CLLocationCoordinate2D coordinate;
+@property (nonatomic) MKMapPoint mapPoint;
+
 
 @end

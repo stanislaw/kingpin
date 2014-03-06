@@ -14,9 +14,12 @@
 // limitations under the License.
 //
 
+
 #import "KPAnnotationTree.h"
 #import "KPTreeNode.h"
 #import "KPAnnotation.h"
+#import "MyAnnotation.h"
+
 
 #if 0
 #define BBTreeLog(...) NSLog(__VA_ARGS__)
@@ -132,7 +135,7 @@
     
     KPTreeNode *n = [[KPTreeNode alloc] init];
         
-    BOOL sortY = (BOOL)(curLevel % 2);
+    BOOL sortY = curLevel % 2;
     
     //TODO: build the tree without sorting at every level
     NSArray *sortedAnnotations = [self sortedAnnotations:annotations sortY:sortY];
@@ -151,6 +154,37 @@
                         level:(curLevel + 1)];
     
     
+    return n;
+}
+
+- (KPTreeNode *)buildTree2:(NSArray *)annotations level:(NSInteger)curLevel {
+
+    NSInteger count = [annotations count];
+
+    if(count == 0){
+        return nil;
+    }
+
+    KPTreeNode *n = [[KPTreeNode alloc] init];
+
+    BOOL sortY = curLevel % 2;
+
+    NSMutableArray *mutableAnnotations = [annotations mutableCopy];
+
+    NSInteger medianIdx = [self selectKthSmallestElement:mutableAnnotations left:0 right:(count - 1) K:(count / 2 - 1) sortY:sortY];
+
+    n.annotation = [mutableAnnotations objectAtIndex:medianIdx];
+
+    n.mapPoint = MKMapPointForCoordinate(n.annotation.coordinate);
+
+    n.left = [self buildTree:[mutableAnnotations subarrayWithRange:NSMakeRange(0, medianIdx)]
+                       level:(curLevel + 1)];
+
+
+    n.right = [self buildTree:[mutableAnnotations subarrayWithRange:NSMakeRange((medianIdx + 1), (count - (medianIdx + 1)))]
+                        level:(curLevel + 1)];
+
+
     return n;
 }
 
@@ -175,7 +209,98 @@
         }
 
     }];
-    
 }
+
+
+#pragma mark - Partial Selection Sort
+
+- (NSArray *)sortedAnnotations2:(NSArray *)annotations sortY:(BOOL)sortY {
+    NSUInteger count = annotations.count;
+    NSUInteger K = count / 2;
+
+    NSMutableArray *newArray = [annotations mutableCopy];
+
+    NSUInteger minIndex;
+    double minValue;
+
+    for (NSUInteger i = 0; i < K; i++) {
+        minIndex = i;
+
+        id <MKAnnotation> ithAnnotation = [newArray objectAtIndex:i];
+        MKMapPoint ithAnnotationPoint = MKMapPointForCoordinate([ithAnnotation coordinate]);
+
+        minValue = (sortY ? ithAnnotationPoint.y : ithAnnotationPoint.x);
+
+        for (NSUInteger j = i + 1; j < count; j++) {
+            id <MKAnnotation> jthAnnotation = [newArray objectAtIndex:j];
+            MKMapPoint jthAnnotationPoint = MKMapPointForCoordinate([jthAnnotation coordinate]);
+
+            double jthAnnotationCoordinate = (sortY ? jthAnnotationPoint.y : jthAnnotationPoint.x);
+
+            if (jthAnnotationCoordinate < minValue) {
+                minIndex = j;
+                minValue = jthAnnotationCoordinate;
+            }
+        }
+
+        [newArray exchangeObjectAtIndex:i withObjectAtIndex:minIndex];
+    }
+    
+    return [newArray copy];
+}
+
+- (NSUInteger)selectNthSmallestElement_partition:(NSMutableArray *)array left:(NSUInteger)left right:(NSUInteger)right pivotIndex:(NSUInteger)pivotIndex sortY:(BOOL)sortY {
+    MyAnnotation *pivotAnnotation = (MyAnnotation *)[array objectAtIndex:pivotIndex];
+
+    MKMapPoint pivotAnnotationPoint = pivotAnnotation.mapPoint;
+
+    double pivotAnnotationValue = sortY ? pivotAnnotationPoint.y : pivotAnnotationPoint.x;
+
+    [array exchangeObjectAtIndex:pivotIndex withObjectAtIndex:right];
+
+    NSUInteger storeIndex = left;
+
+    for (NSUInteger i = left; i < right; i++) {
+        MyAnnotation * ithAnnotation = (MyAnnotation *)[array objectAtIndex:i];
+        MKMapPoint ithAnnotationPoint = ithAnnotation.mapPoint;
+
+        double ithAnnotationPointValue = (sortY ? ithAnnotationPoint.y : ithAnnotationPoint.x);
+
+        if (ithAnnotationPointValue <= pivotAnnotationValue) {
+            [array exchangeObjectAtIndex:storeIndex withObjectAtIndex:i];
+
+            storeIndex++;
+        }
+    }
+
+    [array exchangeObjectAtIndex:right withObjectAtIndex:storeIndex];
+
+    return storeIndex;
+}
+
+- (NSUInteger)selectKthSmallestElement:(NSMutableArray *)array left:(NSUInteger)left right:(NSUInteger)right K:(NSUInteger)K sortY:(BOOL)sortY {
+    if (left == right) {
+        return left;
+    }
+
+    do {
+        NSUInteger pivotIndex = left + arc4random_uniform((uint32_t)(right - left + 1));
+
+        pivotIndex = [self selectNthSmallestElement_partition:array left:left right:right pivotIndex:pivotIndex sortY:sortY];
+
+        if (K == pivotIndex) {
+            return K;
+        }
+
+        else if (K < pivotIndex) {
+            right = pivotIndex - 1;
+        }
+
+        else {
+            left = pivotIndex + 1;
+        }
+    } while (1);
+}
+
 
 @end

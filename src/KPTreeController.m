@@ -34,6 +34,14 @@
 
 @end
 
+FOUNDATION_EXPORT uint64_t dispatch_benchmark(size_t count, void (^block)(void));
+static inline void Benchmark(size_t n, void(^block)(void)) {
+    float time = (float)dispatch_benchmark(n, block);
+
+    printf("The block have been run %zu times. Average is: %f milliseconds\n",  n, (time / 1000000));
+}
+
+
 @implementation KPTreeController
 
 - (id)initWithMapView:(MKMapView *)mapView {
@@ -56,7 +64,11 @@
 
 - (void)setAnnotations:(NSArray *)annotations {
     [self.mapView removeAnnotations:[self.annotationTree.annotations allObjects]];
-    self.annotationTree = [[KPAnnotationTree alloc] initWithAnnotations:annotations];
+    
+    Benchmark(5, ^{
+        self.annotationTree = [[KPAnnotationTree alloc] initWithAnnotations:annotations];
+    });
+
     [self _updateVisibileMapAnnotationsOnMapView:NO];
 }
 
