@@ -58,7 +58,6 @@ typedef enum {
 #pragma mark - Search
 
 - (NSArray *)annotationsInMapRect:(MKMapRect)rect {
-    
     NSMutableArray *result = [NSMutableArray array];
     
     [self doSearchInMapRect:rect
@@ -69,7 +68,6 @@ typedef enum {
     return result;
 }
 
-
 - (void)doSearchInMapRect:(MKMapRect)mapRect 
        mutableAnnotations:(NSMutableArray *)annotations 
                   curNode:(KPTreeNode *)curNode
@@ -78,7 +76,7 @@ typedef enum {
     if(curNode == nil){
         return;
     }
-    
+
     MKMapPoint mapPoint = curNode.mapPoint;
    
     BBTreeLog(@"Testing (%f, %f)...", [curNode.annotation coordinate].latitude, [curNode.annotation coordinate].longitude);
@@ -130,6 +128,111 @@ typedef enum {
              mutableAnnotations:annotations
                         curNode:curNode.right
                        curLevel:(level + 1)];
+    }
+    
+}
+
+
+- (NSArray *)annotationsInMapRect:(MKMapRect)rect totalMapPoint:(MKMapPoint *)totalMapPoint numberOfAnnotations:(NSUInteger *)numberOfAnnotations {
+
+    NSMutableArray *result = [NSMutableArray array];
+
+    [self doSearchInMapRect:rect
+         mutableAnnotations:result
+                    curNode:self.root
+                   curLevel:0
+              totalMapPoint:totalMapPoint numberOfAnnotations:numberOfAnnotations];
+
+    return result;
+}
+
+
+- (void)doSearchInMapRect:(MKMapRect)mapRect
+       mutableAnnotations:(NSMutableArray *)annotations
+                  curNode:(KPTreeNode *)curNode
+                 curLevel:(NSInteger)level
+            totalMapPoint:(MKMapPoint *)totalMapPoint
+      numberOfAnnotations:(NSUInteger *)numberOfAnnotations {
+
+    if(curNode == nil){
+        return;
+    }
+
+    if (MKMapRectContainsRect(mapRect, curNode.mapRect)) {
+        if (curNode.numberOfAnnotations > 1 || *numberOfAnnotations > 1) {
+            (*numberOfAnnotations) += curNode.numberOfAnnotations;
+
+            MKMapPoint mapPoint = (*totalMapPoint);
+            mapPoint.x += curNode.totalMapPoint.x;
+            mapPoint.y += curNode.totalMapPoint.y;
+            (*totalMapPoint) = mapPoint;
+
+            return;
+        }
+    }
+
+    MKMapPoint mapPoint = curNode.mapPoint;
+
+    BBTreeLog(@"Testing (%f, %f)...", [curNode.annotation coordinate].latitude, [curNode.annotation coordinate].longitude);
+
+    if(MKMapRectContainsPoint(mapRect, mapPoint)){
+        BBTreeLog(@"YES");
+        [annotations addObject:curNode.annotation];
+        (*numberOfAnnotations)++;
+
+        MKMapPoint mapPoint = (*totalMapPoint);
+        mapPoint.x += curNode.mapPoint.x;
+        mapPoint.y += curNode.mapPoint.y;
+        (*totalMapPoint) = mapPoint;
+
+    }
+    else {
+        BBTreeLog(@"RECT: NO");
+    }
+
+    KPAnnotationTreeAxis axis = (level & 1) == 0 ? KPAnnotationTreeAxisX : KPAnnotationTreeAxisY;
+
+    double val, minVal, maxVal;
+
+    if (axis == KPAnnotationTreeAxisX) {
+        val    = mapPoint.x;
+        minVal = mapRect.origin.x;
+        maxVal = mapRect.origin.x + mapRect.size.width;
+    } else {
+        val    = mapPoint.y;
+        minVal = mapRect.origin.y;
+        maxVal = mapRect.origin.y + mapRect.size.height;
+    }
+
+    if(maxVal < val){
+
+        [self doSearchInMapRect:mapRect
+             mutableAnnotations:annotations
+                        curNode:curNode.left
+                       curLevel:(level + 1)
+                  totalMapPoint:totalMapPoint numberOfAnnotations:numberOfAnnotations];
+    }
+    else if(minVal > val){
+
+        [self doSearchInMapRect:mapRect
+             mutableAnnotations:annotations
+                        curNode:curNode.right
+                       curLevel:(level + 1)
+                  totalMapPoint:totalMapPoint numberOfAnnotations:numberOfAnnotations];
+    }
+    else {
+
+        [self doSearchInMapRect:mapRect
+             mutableAnnotations:annotations
+                        curNode:curNode.left
+                       curLevel:(level + 1)
+                  totalMapPoint:totalMapPoint numberOfAnnotations:numberOfAnnotations];
+
+        [self doSearchInMapRect:mapRect
+             mutableAnnotations:annotations
+                        curNode:curNode.right
+                       curLevel:(level + 1)
+                  totalMapPoint:totalMapPoint numberOfAnnotations:numberOfAnnotations];
     }
     
 }
@@ -189,18 +292,21 @@ typedef enum {
         return NSOrderedSame;
     });
 
-    self.root = [self buildTree:annotationsX annotationsY:annotationsY count:count level:0];
+    self.root = [self buildTree:annotationsX annotationsY:annotationsY count:count mapRect:MKMapRectWorld level:0];
 
     free(annotationsX);
     free(annotationsY);
 }
 
-- (KPTreeNode *)buildTree:(kp_internal_annotation_t *)annotationsX annotationsY:(kp_internal_annotation_t *)annotationsY count:(NSUInteger)count level:(NSInteger)curLevel {
+- (KPTreeNode *)buildTree:(kp_internal_annotation_t *)annotationsX annotationsY:(kp_internal_annotation_t *)annotationsY count:(NSUInteger)count mapRect:(MKMapRect)mapRect level:(NSInteger)curLevel {
     if (count == 0) {
         return nil;
     }
     
     KPTreeNode *n = [[KPTreeNode alloc] init];
+
+    n.mapRect = mapRect;
+    n.numberOfAnnotations = count;
 
     // Prefer machine way of doing odd/even check
     KPAnnotationTreeAxis axis = (curLevel & 1) == 0 ? KPAnnotationTreeAxisX : KPAnnotationTreeAxisY;
@@ -231,6 +337,12 @@ typedef enum {
         for (NSUInteger i = 0; i < count; i++) {
             kp_internal_annotation_t annotation = annotationsY[i];
 
+            MKMapPoint totalMapPoint = n.totalMapPoint;
+            totalMapPoint.x += annotation.mapPoint.x;
+            totalMapPoint.y += annotation.mapPoint.y;
+
+            n.totalMapPoint = totalMapPoint;
+
             if (KP_LIKELY([annotation.annotation isEqual:n.annotation] == NO)) {
                 if (annotation.mapPoint.x < splittingX) {
                     leftAnnotationsY[leftAnnotationsYCount++] = annotation;
@@ -247,8 +359,15 @@ typedef enum {
         kp_internal_annotation_t *leftAnnotationsX = annotationsX;
         kp_internal_annotation_t *rightAnnotationsX = annotationsX + (medianIdx + 1);
 
-        n.left = [self buildTree:leftAnnotationsX annotationsY:leftAnnotationsY count:medianIdx level:(curLevel + 1)];
-        n.right = [self buildTree:rightAnnotationsX annotationsY:rightAnnotationsY count:(count - medianIdx - 1) level:(curLevel + 1)];
+        MKMapRect leftMapRect, rightMapRect;
+
+        double fraction = 0.000001;
+        MKMapRectDivide(mapRect, &leftMapRect, &rightMapRect, splittingX - MKMapRectGetMinX(mapRect), CGRectMinXEdge);
+
+        leftMapRect.size.width -= fraction;
+
+        n.left = [self buildTree:leftAnnotationsX annotationsY:leftAnnotationsY count:medianIdx mapRect:leftMapRect level:(curLevel + 1)];
+        n.right = [self buildTree:rightAnnotationsX annotationsY:rightAnnotationsY count:(count - medianIdx - 1) mapRect:rightMapRect level:(curLevel + 1)];
 
         free(leftAnnotationsY);
         free(rightAnnotationsY);
@@ -278,6 +397,12 @@ typedef enum {
         for (NSUInteger i = 0; i < count; i++) {
             kp_internal_annotation_t annotation = annotationsX[i];
 
+            MKMapPoint totalMapPoint = n.totalMapPoint;
+            totalMapPoint.x += annotation.mapPoint.x;
+            totalMapPoint.y += annotation.mapPoint.y;
+
+            n.totalMapPoint = totalMapPoint;
+
             if (KP_LIKELY([annotation.annotation isEqual:n.annotation] == NO)) {
                 if (annotation.mapPoint.y < splittingY) {
                     leftAnnotationsX[leftAnnotationsXCount++] = annotation;
@@ -294,9 +419,19 @@ typedef enum {
         kp_internal_annotation_t *leftAnnotationsY = annotationsY;
         kp_internal_annotation_t *rightAnnotationsY = annotationsY + (medianIdx + 1);
 
-        n.left = [self buildTree:leftAnnotationsX annotationsY:leftAnnotationsY count:medianIdx level:(curLevel + 1)];
-        n.right = [self buildTree:rightAnnotationsX annotationsY:rightAnnotationsY count:(count - medianIdx - 1) level:(curLevel + 1)];
-        
+        MKMapRect leftMapRect, rightMapRect;
+
+        double fraction = 0.000001;
+
+        MKMapRectDivide(mapRect, &leftMapRect, &rightMapRect, splittingY - MKMapRectGetMinY(mapRect), CGRectMinYEdge);
+
+        leftMapRect.size.height -= fraction;
+
+//        NSLog(@"%f %f (%f) %f %f", mapRect.size.width, mapRect.size.height, splittingY, leftMapRect.size.width, leftMapRect.size.height);
+
+        n.left = [self buildTree:leftAnnotationsX annotationsY:leftAnnotationsY count:medianIdx mapRect:leftMapRect level:(curLevel + 1)];
+        n.right = [self buildTree:rightAnnotationsX annotationsY:rightAnnotationsY count:(count - medianIdx - 1) mapRect:rightMapRect level:(curLevel + 1)];
+
         free(leftAnnotationsX);
         free(rightAnnotationsX);
     }

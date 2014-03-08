@@ -154,17 +154,27 @@ FOUNDATION_EXPORT uint64_t dispatch_benchmark(size_t count, void (^block)(void))
             
             MKMapRect gridRect = MKMapRectMake(x, y, widthInterval, heightInterval);
 
-            NSArray *newAnnotations = [self.annotationTree annotationsInMapRect:gridRect];
-            
+            MKMapPoint totalMapPoint = MKMapPointMake(0, 0);
+            NSUInteger numberOfAnnotations = 0;
+
+            NSArray *newAnnotations = [self.annotationTree annotationsInMapRect:gridRect totalMapPoint:&totalMapPoint numberOfAnnotations:&numberOfAnnotations];
+
             // cluster annotations in this grid piece, if there are annotations to be clustered
-            if(newAnnotations.count){
+            if(numberOfAnnotations > 0){
                 
                 // if clustring is disabled, add each annotation individually
                 
                 NSMutableArray *clustersToAdd = [NSMutableArray new];
                 
                 if (self.clusteringEnabled) {
-                    KPAnnotation *a = [[KPAnnotation alloc] initWithAnnotations:newAnnotations];
+                    KPAnnotation *a;
+
+                    if (numberOfAnnotations == 1) {
+                        a = [[KPAnnotation alloc] initWithAnnotations:newAnnotations];
+                    } else {
+                        a = [[KPAnnotation alloc] initWithTotalMapPoint:totalMapPoint andNumberOfAnnotations:numberOfAnnotations];
+                    }
+                    
                     [clustersToAdd addObject:a];
                 }
                 else {
@@ -182,92 +192,18 @@ FOUNDATION_EXPORT uint64_t dispatch_benchmark(size_t count, void (^block)(void))
                     [newClusters addObject:a];
                 }
             }
-            
-            if (self.debuggingEnabled) {
-
-                MKMapPoint points[5];
-                points[0] = MKMapPointMake(x, y);
-                points[1] = MKMapPointMake(x + widthInterval, y);
-                points[2] = MKMapPointMake(x + widthInterval, y + heightInterval);
-                points[3] = MKMapPointMake(x, y + heightInterval);
-                points[4] = MKMapPointMake(x, y);
-                
-                [polylines addObject:[MKPolyline polylineWithPoints:points count:5]];
-                
-            }
         }
-    }
-    
-    if (self.debuggingEnabled) {
-        self.gridPolylines = polylines;
     }
     
     if (self.clusteringEnabled) {
-        newClusters = (NSMutableArray *)[self _mergeOverlappingClusters:newClusters];
+        //newClusters = (NSMutableArray *)[self _mergeOverlappingClusters:newClusters];
     }
-    
-    NSArray *oldClusters = [[[self.mapView annotationsInMapRect:bigRect] allObjects] kp_filter:^BOOL(id annotation) {
-        
-        if([annotation isKindOfClass:[KPAnnotation class]]){
-            return ([self.annotationTree.annotations containsObject:[[(KPAnnotation*)annotation annotations] anyObject]]);
-        }
-        else {
-            return NO;
-        }
-    }];
-    
-    if(animated){
-        
-        for(KPAnnotation *newCluster in newClusters){
-            
-            [self.mapView addAnnotation:newCluster];
-            
-            // if was part of an old cluster, then we want to animate it from the old to the new (spreading animation)
-            
-            for(KPAnnotation *oldCluster in oldClusters){
-                
-                BOOL shouldAnimate = ![oldCluster.annotations isEqualToSet:newCluster.annotations];
-                
-                if([oldCluster.annotations member:[newCluster.annotations anyObject]]){
-                    
-                    if([visibleAnnotations member:oldCluster] && shouldAnimate){
-                        [self _animateCluster:newCluster
-                               fromAnnotation:oldCluster
-                                 toAnnotation:newCluster
-                                   completion:nil];
-                    }
-                    
-                    [self.mapView removeAnnotation:oldCluster];
-                }
-                
-                // if the new cluster had old annotations, then animate the old annotations to the new one, and remove it
-                // (collapsing animation)
-                
-                else if([newCluster.annotations member:[oldCluster.annotations anyObject]]){
-                    
-                    if(MKMapRectContainsPoint(self.mapView.visibleMapRect, MKMapPointForCoordinate(newCluster.coordinate)) && shouldAnimate){
-                        
-                        [self _animateCluster:oldCluster
-                               fromAnnotation:oldCluster
-                                 toAnnotation:newCluster
-                                   completion:^(BOOL finished) {
-                                       [self.mapView removeAnnotation:oldCluster];
-                                   }];
-                    }
-                    else {
-                        [self.mapView removeAnnotation:oldCluster];
-                    }
-                    
-                }
-            }
-        }
 
-    }
-    else {
-        [self.mapView removeAnnotations:oldClusters];
-        [self.mapView addAnnotations:newClusters];
-    }
-        
+    [self.mapView removeAnnotations:[self.mapView.annotations kp_filter:^BOOL(id annotation) {
+        return [annotation isKindOfClass:[KPAnnotation class]];
+    }]];
+
+    [self.mapView addAnnotations:newClusters];
 }
 
 - (void)_animateCluster:(KPAnnotation *)cluster
@@ -362,8 +298,11 @@ FOUNDATION_EXPORT uint64_t dispatch_benchmark(size_t count, void (^block)(void))
                     
                     NSMutableSet *combinedSet = [NSMutableSet setWithSet:c1.annotations];
                     [combinedSet unionSet:c2.annotations];
-                    
-                    KPAnnotation *newAnnotation = [[KPAnnotation alloc] initWithAnnotationSet:combinedSet];
+
+                    MKMapPoint commonTotalPoint = MKMapPointMake(c1.totalMapPoint.x + c2.totalMapPoint.x, c1.totalMapPoint.y + c2.totalMapPoint.y);
+                    NSUInteger commonNumberOfAnnotations = c1.numberOfAnnotations + c2.numberOfAnnotations;
+
+                    KPAnnotation *newAnnotation = [[KPAnnotation alloc] initWithTotalMapPoint:commonTotalPoint andNumberOfAnnotations:commonNumberOfAnnotations];
                     
                     [mutableClusters removeObject:c1];
                     [mutableClusters removeObject:c2];

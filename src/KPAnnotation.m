@@ -33,18 +33,39 @@
 - (id)initWithAnnotationSet:(NSSet *)set {
     self = [super init];
     
-    if(self){
+    if (self) {
         self.annotations = set;
         self.title = [NSString stringWithFormat:@"%i things", [self.annotations count]];;
+
         [self calculateValues];
+
+        if (self.annotations.count > 1) {
+            self.isCluster = YES;
+        } else {
+            self.isCluster = NO;
+        }
     }
     
     return self;
 }
 
-- (BOOL)isCluster {
-    return (self.annotations.count > 1);
+- (id)initWithTotalMapPoint:(MKMapPoint)totalMapPoint andNumberOfAnnotations:(NSUInteger)numberOfAnnotations {
+    self = [super init];
+
+    if (self) {
+        self.totalMapPoint = totalMapPoint;
+        self.numberOfAnnotations = numberOfAnnotations;
+        
+        MKMapPoint mapPoint = MKMapPointMake(totalMapPoint.x / numberOfAnnotations, totalMapPoint.y / numberOfAnnotations);
+
+        self.coordinate = MKCoordinateForMapPoint(mapPoint);
+
+        self.isCluster = YES;
+    }
+
+    return self;
 }
+
 
 #pragma mark - Private
 

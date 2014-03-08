@@ -108,8 +108,8 @@ static const int kNumberOfTestAnnotations = 20000;
 #pragma mark - MKMapView
 
 - (void)mapView:(MKMapView *)mapView regionDidChangeAnimated:(BOOL)animated {
-    [self.treeController refresh:self.animationSwitch.on];
-    [self.treeController2 refresh:self.animationSwitch.on];
+    [self.treeController refresh:NO];
+    [self.treeController2 refresh:NO];
 }
 
 - (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view {
@@ -178,8 +178,8 @@ static const int kNumberOfTestAnnotations = 20000;
 #pragma mark - KPTreeControllerDelegate
 
 - (void)treeController:(KPTreeController *)tree configureAnnotationForDisplay:(KPAnnotation *)annotation {
-    annotation.title = [NSString stringWithFormat:@"%i custom annotations", annotation.annotations.count];
-    annotation.subtitle = [NSString stringWithFormat:@"%.0f meters", annotation.radius];
+    //annotation.title = [NSString stringWithFormat:@"%i custom annotations", annotation.annotations.count];
+    //annotation.subtitle = [NSString stringWithFormat:@"%.0f meters", annotation.radius];
 }
 
 @end

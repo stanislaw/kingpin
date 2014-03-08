@@ -16,25 +16,30 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
+
 #import <MapKit/MKAnnotation.h>
+#import <MapKit/MKGeometry.h>
 
 @interface KPAnnotation : NSObject <MKAnnotation>
 
-@property (nonatomic, assign) CLLocationCoordinate2D coordinate;
+@property (nonatomic) CLLocationCoordinate2D coordinate;
 @property (nonatomic, readwrite, copy) NSString *title;
 @property (nonatomic, readwrite, copy) NSString *subtitle;
 
 @property (nonatomic, readonly) float radius;
 @property (nonatomic, readonly) NSSet *annotations;
 
+@property (nonatomic) MKMapPoint totalMapPoint;
+@property (nonatomic) NSUInteger numberOfAnnotations;
+
 
 - (id)initWithAnnotations:(NSArray *)annotations;
 - (id)initWithAnnotationSet:(NSSet *)set;
+- (id)initWithTotalMapPoint:(MKMapPoint)totalMapPoint andNumberOfAnnotations:(NSUInteger)numberOfAnnotations;
 
 // Helpers
 
-// returns NO if the KPAnnotation only contains one annotation
-- (BOOL)isCluster;
+@property (nonatomic) BOOL isCluster;
 
 
 // Private (used by the internal clustering algorithm)

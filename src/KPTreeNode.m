@@ -17,5 +17,16 @@
 #import "KPTreeNode.h"
 
 @implementation KPTreeNode
-// pass
+
+- (instancetype)init {
+    self = [super init];
+
+    if (self == nil) return nil;
+
+    self.totalMapPoint = MKMapPointMake(0, 0);
+    self.numberOfAnnotations = 0;
+    
+    return self;
+}
+
 @end

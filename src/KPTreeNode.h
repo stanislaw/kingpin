@@ -26,4 +26,8 @@
 @property (nonatomic) KPTreeNode *right;
 @property (nonatomic) MKMapPoint mapPoint;
 
+@property (nonatomic) MKMapRect mapRect;
+@property (nonatomic) MKMapPoint totalMapPoint;
+@property (nonatomic) NSUInteger numberOfAnnotations;
+
 @end

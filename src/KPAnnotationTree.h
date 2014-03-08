@@ -25,5 +25,6 @@
 - (id)initWithAnnotations:(NSArray *)annotations;
 
 - (NSArray *)annotationsInMapRect:(MKMapRect)rect;
+- (NSArray *)annotationsInMapRect:(MKMapRect)rect totalMapPoint:(MKMapPoint *)totalMapPoint numberOfAnnotations:(NSUInteger *)numberOfAnnotations;
 
 @end

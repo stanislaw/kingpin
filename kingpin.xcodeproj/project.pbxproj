@@ -573,6 +573,7 @@
 				8641D26418CAF14700B109E4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		93BBC0321645A119004BC920 /* Build configuration list for PBXProject "kingpin" */ = {
 			isa = XCConfigurationList;
