@@ -30,6 +30,7 @@
     return [self initWithAnnotationSet:[NSSet setWithArray:annotations]];
 }
 
+// Now used only for case when annotations.count == 1
 - (id)initWithAnnotationSet:(NSSet *)set {
     self = [super init];
     
@@ -39,16 +40,13 @@
 
         [self calculateValues];
 
-        if (self.annotations.count > 1) {
-            self.isCluster = YES;
-        } else {
-            self.isCluster = NO;
-        }
+        self.isCluster = NO;
     }
     
     return self;
 }
 
+// Designated initializer for cluster
 - (id)initWithTotalMapPoint:(MKMapPoint)totalMapPoint andNumberOfAnnotations:(NSUInteger)numberOfAnnotations {
     self = [super init];
 
@@ -61,6 +59,8 @@
         self.coordinate = MKCoordinateForMapPoint(mapPoint);
 
         self.isCluster = YES;
+
+        self.radius = 0; // Calculate radius
     }
 
     return self;

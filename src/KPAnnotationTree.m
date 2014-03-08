@@ -57,81 +57,6 @@ typedef enum {
 
 #pragma mark - Search
 
-- (NSArray *)annotationsInMapRect:(MKMapRect)rect {
-    NSMutableArray *result = [NSMutableArray array];
-    
-    [self doSearchInMapRect:rect
-         mutableAnnotations:result
-                    curNode:self.root
-                   curLevel:0];
-    
-    return result;
-}
-
-- (void)doSearchInMapRect:(MKMapRect)mapRect 
-       mutableAnnotations:(NSMutableArray *)annotations 
-                  curNode:(KPTreeNode *)curNode
-                 curLevel:(NSInteger)level {
-    
-    if(curNode == nil){
-        return;
-    }
-
-    MKMapPoint mapPoint = curNode.mapPoint;
-   
-    BBTreeLog(@"Testing (%f, %f)...", [curNode.annotation coordinate].latitude, [curNode.annotation coordinate].longitude);
-    
-    if(MKMapRectContainsPoint(mapRect, mapPoint)){
-        BBTreeLog(@"YES");
-        [annotations addObject:curNode.annotation];
-    }
-    else {
-        BBTreeLog(@"RECT: NO");
-    }
-
-    KPAnnotationTreeAxis axis = (level & 1) == 0 ? KPAnnotationTreeAxisX : KPAnnotationTreeAxisY;
-
-    double val, minVal, maxVal;
-
-    if (axis == KPAnnotationTreeAxisX) {
-        val    = mapPoint.x;
-        minVal = mapRect.origin.x;
-        maxVal = mapRect.origin.x + mapRect.size.width;
-    } else {
-        val    = mapPoint.y;
-        minVal = mapRect.origin.y;
-        maxVal = mapRect.origin.y + mapRect.size.height;
-    }
-
-    if(maxVal < val){
-        
-        [self doSearchInMapRect:mapRect
-             mutableAnnotations:annotations
-                        curNode:curNode.left
-                       curLevel:(level + 1)];
-    }
-    else if(minVal > val){
-        
-        [self doSearchInMapRect:mapRect
-             mutableAnnotations:annotations
-                        curNode:curNode.right
-                       curLevel:(level + 1)];
-    }
-    else {
-        
-        [self doSearchInMapRect:mapRect
-             mutableAnnotations:annotations
-                        curNode:curNode.left
-                       curLevel:(level + 1)];
-        
-        [self doSearchInMapRect:mapRect
-             mutableAnnotations:annotations
-                        curNode:curNode.right
-                       curLevel:(level + 1)];
-    }
-    
-}
-
 
 - (NSArray *)annotationsInMapRect:(MKMapRect)rect totalMapPoint:(MKMapPoint *)totalMapPoint numberOfAnnotations:(NSUInteger *)numberOfAnnotations {
 
@@ -154,7 +79,7 @@ typedef enum {
             totalMapPoint:(MKMapPoint *)totalMapPoint
       numberOfAnnotations:(NSUInteger *)numberOfAnnotations {
 
-    if(curNode == nil){
+    if (curNode == nil) {
         return;
     }
 
@@ -173,10 +98,7 @@ typedef enum {
 
     MKMapPoint mapPoint = curNode.mapPoint;
 
-    BBTreeLog(@"Testing (%f, %f)...", [curNode.annotation coordinate].latitude, [curNode.annotation coordinate].longitude);
-
-    if(MKMapRectContainsPoint(mapRect, mapPoint)){
-        BBTreeLog(@"YES");
+    if (MKMapRectContainsPoint(mapRect, mapPoint)){
         [annotations addObject:curNode.annotation];
         (*numberOfAnnotations)++;
 
@@ -185,9 +107,6 @@ typedef enum {
         mapPoint.y += curNode.mapPoint.y;
         (*totalMapPoint) = mapPoint;
 
-    }
-    else {
-        BBTreeLog(@"RECT: NO");
     }
 
     KPAnnotationTreeAxis axis = (level & 1) == 0 ? KPAnnotationTreeAxisX : KPAnnotationTreeAxisY;
@@ -204,7 +123,7 @@ typedef enum {
         maxVal = mapRect.origin.y + mapRect.size.height;
     }
 
-    if(maxVal < val){
+    if (maxVal < val) {
 
         [self doSearchInMapRect:mapRect
              mutableAnnotations:annotations
@@ -212,7 +131,7 @@ typedef enum {
                        curLevel:(level + 1)
                   totalMapPoint:totalMapPoint numberOfAnnotations:numberOfAnnotations];
     }
-    else if(minVal > val){
+    else if (minVal > val) {
 
         [self doSearchInMapRect:mapRect
              mutableAnnotations:annotations
@@ -426,8 +345,6 @@ typedef enum {
         MKMapRectDivide(mapRect, &leftMapRect, &rightMapRect, splittingY - MKMapRectGetMinY(mapRect), CGRectMinYEdge);
 
         leftMapRect.size.height -= fraction;
-
-//        NSLog(@"%f %f (%f) %f %f", mapRect.size.width, mapRect.size.height, splittingY, leftMapRect.size.width, leftMapRect.size.height);
 
         n.left = [self buildTree:leftAnnotationsX annotationsY:leftAnnotationsY count:medianIdx mapRect:leftMapRect level:(curLevel + 1)];
         n.right = [self buildTree:rightAnnotationsX annotationsY:rightAnnotationsY count:(count - medianIdx - 1) mapRect:rightMapRect level:(curLevel + 1)];
