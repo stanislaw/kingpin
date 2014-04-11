@@ -31,11 +31,14 @@ static const int kNumberOfTestAnnotations = 20000;
     [super viewDidLoad];
     
     self.mapView.delegate = self;
-    
+
+    /*
+     Disable old tree controller for now
     self.treeController = [[KPTreeController alloc] initWithMapView:self.mapView];
     self.treeController.delegate = self;
     self.treeController.animationOptions = UIViewAnimationOptionCurveEaseOut;
     [self.treeController setAnnotations:[self annotations]];
+     */
     
     self.treeController2 = [[KPTreeControllerRework alloc] initWithMapView:self.mapView];
     self.treeController2.delegate = self;
