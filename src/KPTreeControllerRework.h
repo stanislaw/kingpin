@@ -23,28 +23,25 @@
 
 @protocol KPTreeControllerReworkDelegate;
 
+typedef struct {
+    CGSize gridSize;
+    CGSize annotationSize;
+    CGPoint annotationCenterOffset;
+    CGFloat animationDuration;
+    UIViewAnimationOptions animationOptions;
+    BOOL clusteringEnabled;
+} KPTreeControllerReworkConfiguration;
+
 @interface KPTreeControllerRework : NSObject
 
 @property (nonatomic, weak) id<KPTreeControllerReworkDelegate> delegate;
-@property (nonatomic) CGSize gridSize;
-@property (nonatomic) CGSize annotationSize;
-@property (nonatomic) CGPoint annotationCenterOffset;
-@property (nonatomic) CGFloat animationDuration;
-@property (nonatomic) UIViewAnimationOptions animationOptions;
-@property (nonatomic) BOOL clusteringEnabled;
-@property (nonatomic) BOOL debuggingEnabled;
-
-/**
- If debuggingEnabled is YES, returns a list of polylines for the grid to be shown on the map
- */
-@property (nonatomic, readonly) NSArray *gridPolylines;
+@property (nonatomic) KPTreeControllerReworkConfiguration configuration;
 
 - (id)initWithMapView:(MKMapView *)mapView;
 - (void)setAnnotations:(NSArray *)annoations;
 - (void)refresh:(BOOL)animated;
 
 @end
-
 
 @protocol KPTreeControllerReworkDelegate<NSObject>
 

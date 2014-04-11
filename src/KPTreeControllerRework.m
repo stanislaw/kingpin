@@ -132,6 +132,14 @@ typedef enum {
 } kp_cluster_merge_result_t;
 
 
+static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfiguration = (KPTreeControllerReworkConfiguration) {
+    .gridSize = (CGSize){60.f, 60.f},
+    .annotationSize = (CGSize){60.f, 60.f},
+    .annotationCenterOffset = (CGPoint){30.f, 30.f},
+    .animationDuration = 0.5f,
+    .clusteringEnabled = YES,
+};
+
 @interface KPTreeControllerRework()
 
 @property (nonatomic) MKMapView *mapView;
@@ -147,17 +155,16 @@ typedef enum {
 
 - (id)initWithMapView:(MKMapView *)mapView {
     
-    self = [super init];
+    self = [self init];
     
-    if(self){
-        self.mapView = mapView;
-        self.mapFrame = self.mapView.frame;
-        self.gridSize = CGSizeMake(60.f, 60.f);
-        self.annotationSize = CGSizeMake(60, 60);
-        self.annotationCenterOffset = CGPointMake(30.f, 30.f);
-        self.animationDuration = 0.5f;
-        self.clusteringEnabled = YES;
+    if (self == nil) {
+        return nil;
     }
+
+    self.mapView = mapView;
+    self.mapFrame = self.mapView.frame;
+
+    self.configuration = KPTreeControllerReworkDefaultConfiguration;
     
     return self;
     
@@ -219,8 +226,8 @@ typedef enum {
     
     
     // calculate the grid size in terms of MKMapPoints
-    double widthPercentage = self.gridSize.width / CGRectGetWidth(self.mapView.frame);
-    double heightPercentage = self.gridSize.height / CGRectGetHeight(self.mapView.frame);
+    double widthPercentage = self.configuration.gridSize.width / CGRectGetWidth(self.mapView.frame);
+    double heightPercentage = self.configuration.gridSize.height / CGRectGetHeight(self.mapView.frame);
     
     double widthInterval = ceil(widthPercentage * self.mapView.visibleMapRect.size.width);
     double heightInterval = ceil(heightPercentage * self.mapView.visibleMapRect.size.height);
@@ -275,12 +282,6 @@ typedef enum {
         assert(clusterGrid[gridSizeX + 1][0] == NULL);
     }
 
-    NSMutableArray *polylines = nil;
-    
-    if (self.debuggingEnabled) {
-        polylines = [NSMutableArray new];
-    }
-
     NSUInteger clusterIndex = 0;
 
     NSLog(@"Grid: (X, Y) => (%d, %d)", gridSizeX, gridSizeY);
@@ -302,7 +303,7 @@ typedef enum {
                 
                 // if clustering is disabled, add each annotation individually
 
-                if (self.clusteringEnabled) {
+                if (self.configuration.clusteringEnabled) {
                     KPAnnotation *annotation = [[KPAnnotation alloc] initWithAnnotations:newAnnotations];
                     [newClusters addObject:annotation];
 
@@ -338,22 +339,9 @@ typedef enum {
                     [newClusters addObjectsFromArray:clustersToAdd];
                 }
             } else {
-                if (self.clusteringEnabled) {
+                if (self.configuration.clusteringEnabled) {
                     clusterGrid[i][j] = NULL;
                 }
-            }
-            
-            if (self.debuggingEnabled) {
-
-                MKMapPoint points[5];
-                points[0] = MKMapPointMake(x, y);
-                points[1] = MKMapPointMake(x + widthInterval, y);
-                points[2] = MKMapPointMake(x + widthInterval, y + heightInterval);
-                points[3] = MKMapPointMake(x, y + heightInterval);
-                points[4] = MKMapPointMake(x, y);
-                
-                [polylines addObject:[MKPolyline polylineWithPoints:points count:5]];
-                
             }
         }
     }
@@ -374,11 +362,7 @@ typedef enum {
         }
     }
 
-    if (self.debuggingEnabled) {
-        self.gridPolylines = polylines;
-    }
-
-    if (self.clusteringEnabled) {
+    if (self.configuration.clusteringEnabled) {
         newClusters = (NSMutableArray *)[self _mergeOverlappingClusters:newClusters inClusterGrid:clusterGrid gridSizeX:gridSizeX gridSizeY:gridSizeY];
     }
 
@@ -482,9 +466,9 @@ typedef enum {
         }
     };
     
-    [UIView animateWithDuration:self.animationDuration
+    [UIView animateWithDuration:self.configuration.animationDuration
                           delay:0.f
-                        options:self.animationOptions
+                        options:self.configuration.animationOptions
                      animations:^{
                          cluster.coordinate = toCoord;
                      }
@@ -525,15 +509,15 @@ typedef enum {
         CGPoint p1 = [cluster1._annotationPointInMapView CGPointValue];
         CGPoint p2 = [cluster2._annotationPointInMapView CGPointValue];
 
-        CGRect r1 = CGRectMake(p1.x - self.annotationSize.width + self.annotationCenterOffset.x,
-                               p1.y - self.annotationSize.height + self.annotationCenterOffset.y,
-                               self.annotationSize.width,
-                               self.annotationSize.height);
+        CGRect r1 = CGRectMake(p1.x - self.configuration.annotationSize.width + self.configuration.annotationCenterOffset.x,
+                               p1.y - self.configuration.annotationSize.height + self.configuration.annotationCenterOffset.y,
+                               self.configuration.annotationSize.width,
+                               self.configuration.annotationSize.height);
 
-        CGRect r2 = CGRectMake(p2.x - self.annotationSize.width + self.annotationCenterOffset.x,
-                               p2.y - self.annotationSize.height + self.annotationCenterOffset.y,
-                               self.annotationSize.width,
-                               self.annotationSize.height);
+        CGRect r2 = CGRectMake(p2.x - self.configuration.annotationSize.width + self.configuration.annotationCenterOffset.x,
+                               p2.y - self.configuration.annotationSize.height + self.configuration.annotationCenterOffset.y,
+                               self.configuration.annotationSize.width,
+                               self.configuration.annotationSize.height);
 
         if (CGRectIntersectsRect(r1, r2)) {
             NSMutableSet *combinedSet = [NSMutableSet setWithSet:cluster1.annotations];
