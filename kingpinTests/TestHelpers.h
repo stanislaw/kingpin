@@ -43,20 +43,5 @@ FOUNDATION_EXPORT uint64_t dispatch_benchmark(size_t count, void (^block)(void))
     } while (0);
 
 
-static uint64_t Benchmarks[10] = {0};
-
-
-static inline void BenchmarkReentrant(NSUInteger benchmarkNumber, void (^block)(void)) {
-    if (block) {
-        uint64_t time = dispatch_benchmark(1, block);
-        Benchmarks[benchmarkNumber] += time;
-    }
-}
-
-
-static inline void BenchmarkReentrantPrintResults() {
-    for (int i = 0; i < 10; i++) {
-        float time = ((float)Benchmarks[i]) / 1000000;
-        printf("Benchmark #%d, time is %f milliseconds\n", i, time);
-    }
-}
+void BenchmarkReentrant(NSUInteger benchmarkNumber, void (^block)(void));
+void BenchmarkReentrantPrintResults(void);
