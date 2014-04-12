@@ -41,11 +41,12 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 
 @interface KPTreeControllerRework()
 
-@property (nonatomic) KPAnnotationTree *annotationTree;
+@property (nonatomic, strong) MKMapView *mapView;
+@property (nonatomic, strong) KPAnnotationTree *annotationTree;
+@property (nonatomic, strong) KPGridClusteringAlgorithm *clusteringAlgorithm;
+
 @property (nonatomic) MKMapRect lastRefreshedMapRect;
 @property (nonatomic) MKCoordinateRegion lastRefreshedMapRegion;
-@property (nonatomic) CGRect mapFrame;
-@property (nonatomic, readwrite) NSArray *gridPolylines;
 
 @end
 
@@ -60,7 +61,6 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
     }
 
     self.mapView = mapView;
-    self.mapFrame = self.mapView.frame;
 
     self.configuration = KPTreeControllerReworkDefaultConfiguration;
     self.clusteringAlgorithm = [[KPGridClusteringAlgorithm alloc] init];
@@ -103,8 +103,8 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
                                              toPointToView:self.mapView];
 
     return
-    (fabs(lastPoint.x - currentPoint.x) > self.mapFrame.size.width) ||
-    (fabs(lastPoint.y - currentPoint.y) > self.mapFrame.size.height);
+    (fabs(lastPoint.x - currentPoint.x) > self.mapView.frame.size.width) ||
+    (fabs(lastPoint.y - currentPoint.y) > self.mapView.frameg.size.height);
 }
 
 
