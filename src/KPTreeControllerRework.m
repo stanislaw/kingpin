@@ -64,17 +64,15 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 
     self.configuration = KPTreeControllerReworkDefaultConfiguration;
     self.clusteringAlgorithm = [[KPGridClusteringAlgorithm alloc] init];
-    self.clusteringAlgorithm.controller = self;
+    self.clusteringAlgorithm.delegate = self;
 
     return self;
-    
 }
 
 - (void)setAnnotations:(NSArray *)annotations {
     [self.mapView removeAnnotations:[self.annotationTree.annotations allObjects]];
 
     self.annotationTree = [[KPAnnotationTree alloc] initWithAnnotations:annotations];
-    self.clusteringAlgorithm.annotationTree = self.annotationTree;
 
     [self _updateVisibileMapAnnotationsOnMapView:NO];
 }
@@ -110,8 +108,8 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 }
 
 
-#pragma mark - Private
-
+#pragma mark 
+#pragma mark Private
 
 - (void)_updateVisibileMapAnnotationsOnMapView:(BOOL)animated {
     NSSet *visibleAnnotations = [self.mapView annotationsInMapRect:[self.mapView visibleMapRect]];
@@ -146,9 +144,14 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
     mapRect.size.width  += (cellSize.width - fmod(MKMapRectGetWidth(mapRect), cellSize.width));
     mapRect.size.height += (cellSize.height - fmod(MKMapRectGetHeight(mapRect), cellSize.height));
 
-    
-    NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize];
 
+    NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize annotationTree:self.annotationTree];
+
+    if ([self.delegate respondsToSelector:@selector(treeController:configureAnnotationForDisplay:)]) {
+        for (KPAnnotation *annotation in newClusters) {
+            [self.delegate treeController:self configureAnnotationForDisplay:annotation];
+        }
+    }
 
     NSArray *oldClusters = [[[self.mapView annotationsInMapRect:mapRect] allObjects] kp_filter:^BOOL(id annotation) {
         if([annotation isKindOfClass:[KPAnnotation class]]){
@@ -253,6 +256,42 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
                      }
                      completion:completionBlock];
     
+}
+
+
+#pragma mark 
+#pragma mark <KPGridClusteringAlgorithmDelegate>
+
+- (BOOL)clusterIntersects:(KPAnnotation *)clusterAnnotation anotherCluster:(KPAnnotation *)anotherClusterAnnotation {
+    // calculate CGRects for each annotation, memoizing the coord -> point conversion as we go
+    // if the two views overlap, merge them
+
+    if (clusterAnnotation._annotationPointInMapView == nil) {
+        clusterAnnotation._annotationPointInMapView = [NSValue valueWithCGPoint:[self.mapView convertCoordinate:clusterAnnotation.coordinate toPointToView:self.mapView]];
+    }
+
+    if (anotherClusterAnnotation._annotationPointInMapView == nil) {
+        anotherClusterAnnotation._annotationPointInMapView = [NSValue valueWithCGPoint:[self.mapView convertCoordinate:anotherClusterAnnotation.coordinate toPointToView:self.mapView]];
+    }
+
+    CGPoint p1 = [clusterAnnotation._annotationPointInMapView CGPointValue];
+    CGPoint p2 = [anotherClusterAnnotation._annotationPointInMapView CGPointValue];
+
+    CGRect r1 = CGRectMake(
+        p1.x - self.configuration.annotationSize.width + self.configuration.annotationCenterOffset.x,
+        p1.y - self.configuration.annotationSize.height + self.configuration.annotationCenterOffset.y,
+        self.configuration.annotationSize.width,
+        self.configuration.annotationSize.height
+    );
+
+    CGRect r2 = CGRectMake(
+        p2.x - self.configuration.annotationSize.width + self.configuration.annotationCenterOffset.x,
+        p2.y - self.configuration.annotationSize.height + self.configuration.annotationCenterOffset.y,
+        self.configuration.annotationSize.width,
+        self.configuration.annotationSize.height
+    );
+
+    return CGRectIntersectsRect(r1, r2);
 }
 
 

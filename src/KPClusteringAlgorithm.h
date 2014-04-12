@@ -17,9 +17,6 @@
 
 @protocol KPClusteringAlgorithm <NSObject>
 
-@property (strong, nonatomic) KPAnnotationTree *annotationTree;
-@property (weak, nonatomic) KPTreeControllerRework *controller;
-
-- (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize;
+- (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize annotationTree:(KPAnnotationTree *)annotationTree;
 
 @end

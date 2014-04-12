@@ -9,6 +9,10 @@
 #import <Foundation/Foundation.h>
 
 #import "KPClusteringAlgorithm.h"
+#import "KPGridClusteringAlgorithmDelegate.h"
+
+@class KPAnnotation;
 
 @interface KPGridClusteringAlgorithm : NSObject <KPClusteringAlgorithm>
+@property (weak, nonatomic) id <KPGridClusteringAlgorithmDelegate> delegate;
 @end

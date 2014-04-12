@@ -18,10 +18,11 @@
 #import <Foundation/Foundation.h>
 
 #import "KPClusteringAlgorithm.h"
+#import "KPGridClusteringAlgorithmDelegate.h"
 
-@class KPAnnotation;
+@class KPAnnotation, KPGridClusteringAlgorithm;
 
-@protocol KPTreeControllerReworkDelegate;
+@protocol KPTreeControllerReworkDelegate, KPGridClusteringAlgorithmDelegate;
 
 typedef struct {
     CGSize gridSize;
@@ -32,13 +33,13 @@ typedef struct {
     BOOL clusteringEnabled;
 } KPTreeControllerReworkConfiguration;
 
-@interface KPTreeControllerRework : NSObject
+@interface KPTreeControllerRework : NSObject <KPGridClusteringAlgorithmDelegate>
 
 @property (nonatomic) MKMapView *mapView;
 
 @property (nonatomic, weak) id<KPTreeControllerReworkDelegate> delegate;
 @property (nonatomic) KPTreeControllerReworkConfiguration configuration;
-@property (nonatomic, strong) id <KPClusteringAlgorithm> clusteringAlgorithm;
+@property (nonatomic, strong) KPGridClusteringAlgorithm *clusteringAlgorithm;
 
 - (id)initWithMapView:(MKMapView *)mapView;
 - (void)setAnnotations:(NSArray *)annoations;
@@ -51,7 +52,7 @@ typedef struct {
 
 @end
 
-@protocol KPTreeControllerReworkDelegate<NSObject>
+@protocol KPTreeControllerReworkDelegate <NSObject>
 
 @optional
 

@@ -129,11 +129,7 @@ typedef enum {
 
 @implementation KPGridClusteringAlgorithm
 
-@synthesize annotationTree = _annotationTree,
-            controller     = _controller;
-
-
-- (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize {
+- (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize annotationTree:(KPAnnotationTree *)annotationTree {
     NSAssert(MKMapRectGetWidth(mapRect)  > cellSize.width, nil);
     NSAssert(MKMapRectGetHeight(mapRect) > cellSize.height, nil);
 
@@ -193,52 +189,25 @@ typedef enum {
 
             MKMapRect gridRect = MKMapRectMake(x, y, cellSize.width, cellSize.height);
 
-            NSArray *newAnnotations = [self.annotationTree annotationsInMapRect:gridRect];
+            NSArray *newAnnotations = [annotationTree annotationsInMapRect:gridRect];
 
             // cluster annotations in this grid piece, if there are annotations to be clustered
             if (newAnnotations.count > 0) {
+                KPAnnotation *annotation = [[KPAnnotation alloc] initWithAnnotations:newAnnotations];
+                [newClusters addObject:annotation];
 
-                // if clustering is disabled, add each annotation individually
+                kp_cluster_t *cluster = clusterStorage + clusterIndex;
+                cluster->mapRect = gridRect;
+                cluster->annotationIndex = clusterIndex;
+                cluster->merged = NO;
 
-                if (self.controller.configuration.clusteringEnabled) {
-                    KPAnnotation *annotation = [[KPAnnotation alloc] initWithAnnotations:newAnnotations];
-                    [newClusters addObject:annotation];
+                cluster->distributionQuadrant = KPClusterDistributionQuadrantForPointInsideMapRect(gridRect, MKMapPointForCoordinate(annotation.coordinate));
 
-                    kp_cluster_t *cluster = clusterStorage + clusterIndex;
-                    cluster->mapRect = gridRect;
-                    cluster->annotationIndex = clusterIndex;
-                    cluster->merged = NO;
+                clusterGrid[i][j] = cluster;
 
-                    cluster->distributionQuadrant = KPClusterDistributionQuadrantForPointInsideMapRect(gridRect, MKMapPointForCoordinate(annotation.coordinate));
-
-                    clusterGrid[i][j] = cluster;
-
-                    clusterIndex++;
-
-                    if([self.controller.delegate respondsToSelector:@selector(treeController:configureAnnotationForDisplay:)]){
-                        [self.controller.delegate treeController:self.controller configureAnnotationForDisplay:annotation];
-                    }
-                }
-                else {
-                    NSMutableArray *clustersToAdd = [NSMutableArray new];
-
-                    [clustersToAdd addObjectsFromArray:[newAnnotations kp_map:^KPAnnotation *(id<MKAnnotation> a) {
-                        return [[KPAnnotation alloc] initWithAnnotations:@[a]];
-                    }]];
-
-                    for (KPAnnotation *a in clustersToAdd){
-
-                        if([self.controller.delegate respondsToSelector:@selector(treeController:configureAnnotationForDisplay:)]){
-                            [self.controller.delegate treeController:self.controller configureAnnotationForDisplay:a];
-                        }
-                    }
-
-                    [newClusters addObjectsFromArray:clustersToAdd];
-                }
+                clusterIndex++;
             } else {
-                if (self.controller.configuration.clusteringEnabled) {
-                    clusterGrid[i][j] = NULL;
-                }
+                clusterGrid[i][j] = NULL;
             }
         }
     }
@@ -259,9 +228,7 @@ typedef enum {
         }
     }
 
-    if (self.controller.configuration.clusteringEnabled) {
-        newClusters = (NSMutableArray *)[self _mergeOverlappingClusters:newClusters inClusterGrid:clusterGrid gridSizeX:gridSizeX gridSizeY:gridSizeY];
-    }
+    newClusters = (NSMutableArray *)[self _mergeOverlappingClusters:newClusters inClusterGrid:clusterGrid gridSizeX:gridSizeX gridSizeY:gridSizeY];
 
 
     for (int i = 0; i < gridSizeX; i++) {
@@ -291,34 +258,9 @@ typedef enum {
         KPAnnotation *cluster1 = [mutableClusters objectAtIndex:cl1->annotationIndex];
         KPAnnotation *cluster2 = [mutableClusters objectAtIndex:cl2->annotationIndex];
 
+        BOOL clustersIntersect = [self.delegate clusterIntersects:cluster1 anotherCluster:cluster2];
 
-        // calculate CGRects for each annotation, memoizing the coord -> point conversion as we go
-        // if the two views overlap, merge them
-
-        if (cluster1._annotationPointInMapView == nil) {
-            cluster1._annotationPointInMapView = [NSValue valueWithCGPoint:[self.controller.mapView convertCoordinate:cluster1.coordinate
-                                                                                             toPointToView:self.controller.mapView]];
-        }
-
-        if (cluster2._annotationPointInMapView == nil) {
-            cluster2._annotationPointInMapView = [NSValue valueWithCGPoint:[self.controller.mapView convertCoordinate:cluster2.coordinate
-                                                                                             toPointToView:self.controller.mapView]];
-        }
-
-        CGPoint p1 = [cluster1._annotationPointInMapView CGPointValue];
-        CGPoint p2 = [cluster2._annotationPointInMapView CGPointValue];
-
-        CGRect r1 = CGRectMake(p1.x - self.controller.configuration.annotationSize.width + self.controller.configuration.annotationCenterOffset.x,
-                               p1.y - self.controller.configuration.annotationSize.height + self.controller.configuration.annotationCenterOffset.y,
-                               self.controller.configuration.annotationSize.width,
-                               self.controller.configuration.annotationSize.height);
-
-        CGRect r2 = CGRectMake(p2.x - self.controller.configuration.annotationSize.width + self.controller.configuration.annotationCenterOffset.x,
-                               p2.y - self.controller.configuration.annotationSize.height + self.controller.configuration.annotationCenterOffset.y,
-                               self.controller.configuration.annotationSize.width,
-                               self.controller.configuration.annotationSize.height);
-
-        if (CGRectIntersectsRect(r1, r2)) {
+        if (clustersIntersect) {
             NSMutableSet *combinedSet = [NSMutableSet setWithSet:cluster1.annotations];
             [combinedSet unionSet:cluster2.annotations];
 
