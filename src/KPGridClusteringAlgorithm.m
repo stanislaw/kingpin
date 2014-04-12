@@ -182,6 +182,7 @@ typedef enum {
 
     NSLog(@"Grid: (X, Y) => (%d, %d)", gridSizeX, gridSizeY);
 
+    NSUInteger annotationCounter = 0;
     NSUInteger counter = 0;
     for(int i = 1; i < (gridSizeX + 1); i++) {
         for(int j = 1; j < (gridSizeY + 1); j++){
@@ -209,12 +210,15 @@ typedef enum {
                 clusterGrid[i][j] = cluster;
 
                 clusterIndex++;
+                annotationCounter += newAnnotations.count;
             } else {
                 clusterGrid[i][j] = NULL;
             }
         }
     }
 
+    NSLog(@"AnnotationCounter %lu", (unsigned long)annotationCounter);
+    
     /* Validation (Debug, remove later) */
     assert(counter == (gridSizeX * gridSizeY));
 

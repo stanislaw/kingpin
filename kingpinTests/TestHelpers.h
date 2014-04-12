@@ -18,6 +18,23 @@ static inline NSArray *arrayShuffle(NSArray *array) {
 }
 
 
+static inline BOOL NSArrayHasDuplicates(NSArray *array) {
+    NSMutableDictionary *registry = [[NSMutableDictionary alloc] initWithCapacity:array.count];
+
+    for (id element in array) {
+        NSNumber *elementHash = @([element hash]);
+
+        if (registry[elementHash] == nil) {
+            registry[elementHash] = element;
+        } else {
+            NSLog(@"NSArrayHasDuplicates() found duplicate elements: %@ and %@", registry[elementHash], element);
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
 static inline double randomWithinRange(double min, double max) {
     return (min + (max - min) * (double)arc4random_uniform(UINT32_MAX) / (UINT32_MAX - 1));
 }

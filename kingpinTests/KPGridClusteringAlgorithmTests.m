@@ -10,6 +10,7 @@
 
 #import "KPGridClusteringAlgorithm.h"
 
+#import "KPAnnotation.h"
 #import "KPAnnotationTree.h"
 
 #import "KPGeometry.h"
@@ -44,21 +45,35 @@
 
     MKMapRect randomRect = MKMapRectRandom();
 
-    //NSArray *annotationsBySearch = [annotationTree annotationsInMapRect:randomRect];
 
     KPGridClusteringAlgorithm *clusteringAlgorithm = [[KPGridClusteringAlgorithm alloc] init];
 
     MKMapSize cellSize = MKMapSizeMake(round(randomRect.size.width / 10), round(randomRect.size.height / 10));
 
+    /*
     NSLog(@"rect size: %f %f", randomRect.size.width, randomRect.size.height);
-
     NSLog(@"Cell size: %f %f", cellSize.width, cellSize.height);
-
+     */
+    
     randomRect = MKMapRectNormalizeToCellSize(randomRect, cellSize);
 
-    //NSArray *clusters = [clusteringAlgorithm performClusteringOfAnnotationsInMapRect:randomRect cellSize:cellSize annotationTree:annotationTree];
+    NSArray *clusters = [clusteringAlgorithm performClusteringOfAnnotationsInMapRect:randomRect cellSize:cellSize annotationTree:annotationTree];
 
-    
+    //NSLog(@"Clusters %@", clusters);
+
+    NSMutableArray *annotationsCollectedFromClusters = [NSMutableArray array];
+    NSArray *annotationsBySearch = [annotationTree annotationsInMapRect:randomRect];
+
+    [clusters enumerateObjectsUsingBlock:^(KPAnnotation *clusterAnnotation, NSUInteger idx, BOOL *stop) {
+        [annotationsCollectedFromClusters addObjectsFromArray:clusterAnnotation.annotations.allObjects];
+    }];
+
+    XCTAssertTrue(NSArrayHasDuplicates(annotationsBySearch) == NO);
+    XCTAssertTrue(NSArrayHasDuplicates(annotationsCollectedFromClusters) == NO);
+
+
+    // TODO
+    XCTAssertTrue(annotationsBySearch.count == annotationsCollectedFromClusters.count, @"%lu %lu", (unsigned long)annotationsBySearch.count, (unsigned long)annotationsCollectedFromClusters.count);
 }
 
 @end

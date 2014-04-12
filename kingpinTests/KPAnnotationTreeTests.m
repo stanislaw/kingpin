@@ -66,6 +66,8 @@ static NSUInteger const kNumberOfTestAnnotations = 50000;
 
     NSArray *annotationsBySearch = [annotationTree annotationsInMapRect:MKMapRectWorld];
 
+    XCTAssertTrue(NSArrayHasDuplicates(annotationsBySearch) == NO);
+    
     __block __weak void (^weakRecursiveTraversalBlock)(kp_treenode_t *node, NSUInteger levelOfDepth);
     void (^recursiveTraversalBlock)(kp_treenode_t *node, NSUInteger levelOfDepth);
 
@@ -150,6 +152,9 @@ static NSUInteger const kNumberOfTestAnnotations = 50000;
 
     NSArray *annotationsBySearch1 = [annotationTree1 annotationsInMapRect:MKMapRectWorld];
     NSArray *annotationsBySearch2 = [annotationTree2 annotationsInMapRect:MKMapRectWorld];
+
+    XCTAssertTrue(NSArrayHasDuplicates(annotationsBySearch1) == NO);
+    XCTAssertTrue(NSArrayHasDuplicates(annotationsBySearch2) == NO);
 
     NSSet *annotationSetBySearch1 = [NSSet setWithArray:annotationsBySearch1];
     NSSet *annotationSetBySearch2 = [NSSet setWithArray:annotationsBySearch2];
