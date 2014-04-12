@@ -188,8 +188,8 @@ typedef enum {
         for(int j = 1; j < (gridSizeY + 1); j++){
             counter++;
 
-            int x = mapRect.origin.x + i * cellSize.width;
-            int y = mapRect.origin.y + j * cellSize.height;
+            int x = mapRect.origin.x + (i - 1) * cellSize.width;
+            int y = mapRect.origin.y + (j - 1) * cellSize.height;
 
             MKMapRect gridRect = MKMapRectMake(x, y, cellSize.width, cellSize.height);
 

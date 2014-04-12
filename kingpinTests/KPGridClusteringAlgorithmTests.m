@@ -27,7 +27,7 @@
 {
     NSMutableArray *annotations = [NSMutableArray array];
 
-    NSUInteger randomNumberOfAnnotations = 1 + arc4random_uniform(1000);
+    NSUInteger randomNumberOfAnnotations = 1 + arc4random_uniform(10000);
 
     for (int i = 0; i < randomNumberOfAnnotations; i++) {
         CLLocationDegrees latAdj = ((CLLocationDegrees)(arc4random_uniform(900)) / 10);
@@ -59,8 +59,6 @@
 
     NSArray *clusters = [clusteringAlgorithm performClusteringOfAnnotationsInMapRect:randomRect cellSize:cellSize annotationTree:annotationTree];
 
-    //NSLog(@"Clusters %@", clusters);
-
     NSMutableArray *annotationsCollectedFromClusters = [NSMutableArray array];
     NSArray *annotationsBySearch = [annotationTree annotationsInMapRect:randomRect];
 
@@ -71,9 +69,13 @@
     XCTAssertTrue(NSArrayHasDuplicates(annotationsBySearch) == NO);
     XCTAssertTrue(NSArrayHasDuplicates(annotationsCollectedFromClusters) == NO);
 
-
-    // TODO
     XCTAssertTrue(annotationsBySearch.count == annotationsCollectedFromClusters.count, @"%lu %lu", (unsigned long)annotationsBySearch.count, (unsigned long)annotationsCollectedFromClusters.count);
+
+
+    NSSet *annotationsBySearchSet = [NSSet setWithArray:annotationsBySearch];
+    NSSet *annotationsCollectedFromClustersSet = [NSSet setWithArray:annotationsCollectedFromClusters];
+
+    XCTAssertTrue([annotationsBySearchSet isEqualToSet:annotationsCollectedFromClustersSet]);
 }
 
 @end
