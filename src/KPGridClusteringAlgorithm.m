@@ -136,6 +136,8 @@ typedef enum {
     int gridSizeX = mapRect.size.width / cellSize.width;
     int gridSizeY = mapRect.size.height / cellSize.height;
 
+    assert(((uint32_t)mapRect.size.width % (uint32_t)cellSize.width) == 0);
+
     // We initialize with a rough estimate for size, as to minimize allocations.
     __block NSMutableArray *newClusters = [[NSMutableArray alloc] initWithCapacity:(gridSizeX * gridSizeY)];
 

@@ -96,15 +96,18 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 }
 
 - (BOOL)_mapWasPannedSignificantly {
+    /*
     CGPoint lastPoint = [self.mapView convertCoordinate:self.lastRefreshedMapRegion.center
                                           toPointToView:self.mapView];
     
     CGPoint currentPoint = [self.mapView convertCoordinate:self.mapView.region.center
                                              toPointToView:self.mapView];
 
-    return
     (fabs(lastPoint.x - currentPoint.x) > self.mapView.frame.size.width) ||
     (fabs(lastPoint.y - currentPoint.y) > self.mapView.frameg.size.height);
+     */
+
+    return YES;
 }
 
 
@@ -143,6 +146,13 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 
     mapRect.size.width  += (cellSize.width - fmod(MKMapRectGetWidth(mapRect), cellSize.width));
     mapRect.size.height += (cellSize.height - fmod(MKMapRectGetHeight(mapRect), cellSize.height));
+
+    // Add small padding
+    mapRect = MKMapRectInset(
+        mapRect,
+        - 2 * cellSize.width,
+        - 2 * cellSize.height
+    );
 
 
     NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize annotationTree:self.annotationTree];
