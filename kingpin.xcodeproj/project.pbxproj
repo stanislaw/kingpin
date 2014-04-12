@@ -11,6 +11,7 @@
 		86174DC318F8667400014C48 /* KPTreeController.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DC218F8667400014C48 /* KPTreeController.m */; };
 		86174DC718F9A08200014C48 /* KPGridClusteringAlgorithm.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DC618F9A08200014C48 /* KPGridClusteringAlgorithm.m */; };
 		86174DC818F9AB5A00014C48 /* KPGridClusteringAlgorithm.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DC618F9A08200014C48 /* KPGridClusteringAlgorithm.m */; };
+		86174DCF18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DCE18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m */; };
 		9122C06418E77A9E00356A3D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9122C06318E77A9E00356A3D /* CoreGraphics.framework */; };
 		9122C06618E77AAA00356A3D /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9122C06518E77AAA00356A3D /* CoreLocation.framework */; };
 		9122C06718E77AB800356A3D /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 91E9B69518E7509300EFE22C /* MapKit.framework */; };
@@ -54,6 +55,8 @@
 		86174DC518F9A08200014C48 /* KPGridClusteringAlgorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KPGridClusteringAlgorithm.h; sourceTree = "<group>"; };
 		86174DC618F9A08200014C48 /* KPGridClusteringAlgorithm.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KPGridClusteringAlgorithm.m; sourceTree = "<group>"; };
 		86174DC918F9BF7D00014C48 /* KPGridClusteringAlgorithmDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KPGridClusteringAlgorithmDelegate.h; sourceTree = "<group>"; };
+		86174DCE18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KPGridClusteringAlgorithmTests.m; sourceTree = "<group>"; };
+		86174DD018F9D7CF00014C48 /* KPGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = KPGeometry.h; path = ../../../../../stanislaw/Work/Pods/kingpin/src/KPGeometry.h; sourceTree = "<group>"; };
 		8641D25318CAF14700B109E4 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		8641D26518CAF3C800B109E4 /* KPAnnotationTree_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KPAnnotationTree_Private.h; sourceTree = "<group>"; };
 		9122C06318E77A9E00356A3D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.0.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
@@ -133,6 +136,7 @@
 				9189259F18E7732900812296 /* Supporting Files */,
 				8605864518EC13400026144F /* KPAnnotationTests.m */,
 				8605864718EC1F090026144F /* TestHelpers.h */,
+				86174DCE18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m */,
 			);
 			path = kingpinTests;
 			sourceTree = "<group>";
@@ -163,6 +167,7 @@
 				86174DC518F9A08200014C48 /* KPGridClusteringAlgorithm.h */,
 				86174DC618F9A08200014C48 /* KPGridClusteringAlgorithm.m */,
 				86174DC918F9BF7D00014C48 /* KPGridClusteringAlgorithmDelegate.h */,
+				86174DD018F9D7CF00014C48 /* KPGeometry.h */,
 			);
 			name = kp;
 			sourceTree = "<group>";
@@ -350,6 +355,7 @@
 				91E4FC2818E773F300AC8444 /* TestAnnotation.m in Sources */,
 				91E4FC2418E773F300AC8444 /* NSArray+KP.m in Sources */,
 				91E4FC2518E773F300AC8444 /* KPAnnotationTree.m in Sources */,
+				86174DCF18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m in Sources */,
 				86174DC818F9AB5A00014C48 /* KPGridClusteringAlgorithm.m in Sources */,
 				91E4FC2618E773F300AC8444 /* KPAnnotation.m in Sources */,
 			);

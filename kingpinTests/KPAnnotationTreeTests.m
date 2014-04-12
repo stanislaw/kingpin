@@ -159,12 +159,7 @@ static NSUInteger const kNumberOfTestAnnotations = 50000;
     XCTAssertTrue(annotationsBySearch1.count == kNumberOfTestAnnotations, @"");
 
     // Create random rect
-    double randomWidth = randomWithinRange(0, MKMapRectWorld.size.width);
-    double randomHeight = randomWithinRange(0, MKMapRectWorld.size.height);
-    double randomX = randomWithinRange(0, MKMapRectWorld.size.width - randomWidth);
-    double randomY = randomWithinRange(0, MKMapRectWorld.size.height - randomHeight);
-
-    MKMapRect randomRect = MKMapRectMake(randomX, randomY, randomWidth, randomHeight);
+    MKMapRect randomRect = MKMapRectRandom();
 
     NSAssert(MKMapRectContainsRect(MKMapRectWorld, randomRect), nil);
 

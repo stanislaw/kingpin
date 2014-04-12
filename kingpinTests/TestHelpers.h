@@ -19,9 +19,20 @@ static inline NSArray *arrayShuffle(NSArray *array) {
 
 
 static inline double randomWithinRange(double min, double max) {
-    return min + (max - min) * (double)arc4random_uniform(UINT32_MAX) / (UINT32_MAX - 1);
+    return (min + (max - min) * (double)arc4random_uniform(UINT32_MAX) / (UINT32_MAX - 1));
 }
 
+
+static inline MKMapRect MKMapRectRandom() {
+    double randomWidth = round(randomWithinRange(0, MKMapRectWorld.size.width));
+    double randomHeight = round(randomWithinRange(0, MKMapRectWorld.size.height));
+    double randomX = round(randomWithinRange(0, MKMapRectWorld.size.width - randomWidth));
+    double randomY = round(randomWithinRange(0, MKMapRectWorld.size.height - randomHeight));
+
+    MKMapRect randomRect = MKMapRectMake(randomX, randomY, randomWidth, randomHeight);
+
+    return randomRect;
+}
 
 static inline BOOL CLLocationCoordinates2DEqual(CLLocationCoordinate2D coordinate, CLLocationCoordinate2D otherCoordinate) {
     static const double precision = 0.00000000001;

@@ -20,6 +20,8 @@
 
 #import <objc/runtime.h>
 
+#import "KPGeometry.h"
+
 #import "KPTreeControllerRework.h"
 
 #import "KPGridClusteringAlgorithm.h"
@@ -141,11 +143,7 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
     MKMapRect mapRect = self.mapView.visibleMapRect;
 
     // Normalize grid to a cell size.
-    mapRect.origin.x -= fmod(MKMapRectGetMinX(mapRect), cellSize.width);
-    mapRect.origin.y -= fmod(MKMapRectGetMinY(mapRect), cellSize.height);
-
-    mapRect.size.width  += (cellSize.width - fmod(MKMapRectGetWidth(mapRect), cellSize.width));
-    mapRect.size.height += (cellSize.height - fmod(MKMapRectGetHeight(mapRect), cellSize.height));
+    mapRect = MKMapRectNormalizeToCellSize(mapRect, cellSize);
 
     // Add small padding
     mapRect = MKMapRectInset(
