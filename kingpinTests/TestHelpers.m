@@ -19,3 +19,7 @@ void BenchmarkReentrantPrintResults(void) {
     }
 }
 
+
+void BenchmarkReentrantResetResults(void) {
+    memset(&Benchmarks, 0, sizeof(uint64_t) * sizeof(10));
+}
