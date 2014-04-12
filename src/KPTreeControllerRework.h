@@ -16,8 +16,8 @@
 
 
 #import <Foundation/Foundation.h>
-#import <CoreLocation/CoreLocation.h>
-#import <MapKit/MapKit.h>
+
+#import "KPClusteringAlgorithm.h"
 
 @class KPAnnotation;
 
@@ -36,10 +36,16 @@ typedef struct {
 
 @property (nonatomic, weak) id<KPTreeControllerReworkDelegate> delegate;
 @property (nonatomic) KPTreeControllerReworkConfiguration configuration;
+@property (nonatomic, strong) id <KPClusteringAlgorithm> clusteringAlgorithm;
 
 - (id)initWithMapView:(MKMapView *)mapView;
 - (void)setAnnotations:(NSArray *)annoations;
 - (void)refresh:(BOOL)animated;
+
+- (void)_animateCluster:(KPAnnotation *)cluster
+         fromAnnotation:(KPAnnotation *)fromAnnotation
+           toAnnotation:(KPAnnotation *)toAnnotation
+             completion:(void (^)(BOOL finished))completion;
 
 @end
 

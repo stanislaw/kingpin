@@ -41,7 +41,7 @@
 
     self = [super init];
 
-    if(self){
+    if (self) {
         self.mapView = mapView;
         self.mapFrame = self.mapView.frame;
         self.gridSize = CGSizeMake(60.f, 60.f);
