@@ -214,18 +214,22 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 {
     NSSet *visibleAnnotations = [self.mapView annotationsInMapRect:[self.mapView visibleMapRect]];
     
-    // updates visible map rect plus a map view's worth of padding around it
-    MKMapRect bigRect = MKMapRectInset(self.mapView.visibleMapRect,
+    // Updates visible map rect plus a map view's worth of padding around it.
+    MKMapRect bigRect = self.mapView.visibleMapRect;
+
+    /*
+    bigRect = MKMapRectInset(self.mapView.visibleMapRect,
                                        -self.mapView.visibleMapRect.size.width,
                                        -self.mapView.visibleMapRect.size.height);
-    
+
     if (MKMapRectGetHeight(bigRect) > MKMapRectGetHeight(MKMapRectWorld) ||
         MKMapRectGetWidth(bigRect) > MKMapRectGetWidth(MKMapRectWorld)) {
         bigRect = MKMapRectWorld;
     }
+     */
+
     
-    
-    // calculate the grid size in terms of MKMapPoints
+    // Calculate the grid size in terms of MKMapPoints.
     double widthPercentage = self.configuration.gridSize.width / CGRectGetWidth(self.mapView.frame);
     double heightPercentage = self.configuration.gridSize.height / CGRectGetHeight(self.mapView.frame);
     
@@ -233,7 +237,7 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
     double heightInterval = ceil(heightPercentage * self.mapView.visibleMapRect.size.height);
 
 
-    // Normalize rect to a cell size
+    // Normalize rect to a cell size.
     bigRect.origin.x -= fmod(MKMapRectGetMinX(bigRect), widthInterval);
     bigRect.origin.y -= fmod(MKMapRectGetMinY(bigRect), heightInterval);
 
@@ -243,7 +247,7 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
     int gridSizeX = bigRect.size.width / widthInterval;
     int gridSizeY = bigRect.size.height / heightInterval;
 
-    // we initialize with a rough estimate for size, as to minimize allocations
+    // We initialize with a rough estimate for size, as to minimize allocations.
     __block NSMutableArray *newClusters = [[NSMutableArray alloc] initWithCapacity:(gridSizeX * gridSizeY)];
 
     kp_cluster_t *clusterStorage = malloc((gridSizeX * gridSizeY) * sizeof(kp_cluster_t));
@@ -268,7 +272,7 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
         clusterGrid[i][gridSizeY + 1] = NULL;
     }
 
-    // memset is the fastest way to NULLify marginal first and last rows of clusterGrid
+    // memset() is the fastest way to NULLify marginal first and last rows of clusterGrid.
     memset(clusterGrid[0],             0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
     memset(clusterGrid[gridSizeX + 1], 0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
 
@@ -375,6 +379,7 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 
     NSArray *oldClusters = [[[self.mapView annotationsInMapRect:bigRect] allObjects] kp_filter:^BOOL(id annotation) {
         if([annotation isKindOfClass:[KPAnnotation class]]){
+            return YES;
             return ([self.annotationTree.annotations containsObject:[[(KPAnnotation*)annotation annotations] anyObject]]);
         }
         else {

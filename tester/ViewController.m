@@ -15,6 +15,8 @@
 #import "KPTreeController.h"
 #import "KPTreeControllerRework.h"
 
+#import "TestHelpers.h"
+
 static const int kNumberOfTestAnnotations = 20000;
 
 @interface ViewController ()
@@ -39,7 +41,7 @@ static const int kNumberOfTestAnnotations = 20000;
     self.treeController.animationOptions = UIViewAnimationOptionCurveEaseOut;
     [self.treeController setAnnotations:[self annotations]];
      */
-    
+
     self.treeController2 = [[KPTreeControllerRework alloc] initWithMapView:self.mapView];
     self.treeController2.delegate = self;
 
@@ -86,8 +88,8 @@ static const int kNumberOfTestAnnotations = 20000;
     
     for (int i=0; i< kNumberOfTestAnnotations / 2; i++) {
         
-        float latAdj = ((random() % 100) / 1000.f);
-        float lngAdj = ((random() % 100) / 1000.f);
+        float latAdj = ((random() % 1000) / 1000.f);
+        float lngAdj = ((random() % 1000) / 1000.f);
         
         TestAnnotation *a1 = [[TestAnnotation alloc] init];
         a1.coordinate = CLLocationCoordinate2DMake(nycCoord.latitude + latAdj, 
@@ -117,7 +119,9 @@ static const int kNumberOfTestAnnotations = 20000;
 
 - (void)mapView:(MKMapView *)mapView regionDidChangeAnimated:(BOOL)animated {
     //[self.treeController refresh:self.animationSwitch.on];
-    [self.treeController2 refresh:self.animationSwitch.on];
+    Benchmark(1, ^{
+        [self.treeController2 refresh:self.animationSwitch.on];
+    });
 }
 
 - (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view {
