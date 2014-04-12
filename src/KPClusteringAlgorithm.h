@@ -8,16 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
+#import <MapKit/MKGeometry.h>
+
 @class KPAnnotationTree;
 @class MKMapView;
 @class KPTreeControllerRework;
 
+
 @protocol KPClusteringAlgorithm <NSObject>
 
 @property (strong, nonatomic) KPAnnotationTree *annotationTree;
-@property (strong, nonatomic) MKMapView *mapView;
 @property (weak, nonatomic) KPTreeControllerRework *controller;
 
-- (void)_updateVisibileMapAnnotationsOnMapView:(BOOL)animated;
+- (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize;
 
 @end

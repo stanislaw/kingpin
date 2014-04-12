@@ -27,6 +27,8 @@
 #import "KPAnnotation.h"
 #import "KPAnnotationTree.h"
 
+#import "NSArray+KP.h"
+
 
 static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfiguration = (KPTreeControllerReworkConfiguration) {
     .gridSize = (CGSize){60.f, 60.f},
@@ -39,7 +41,6 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 
 @interface KPTreeControllerRework()
 
-@property (nonatomic) MKMapView *mapView;
 @property (nonatomic) KPAnnotationTree *annotationTree;
 @property (nonatomic) MKMapRect lastRefreshedMapRect;
 @property (nonatomic) MKCoordinateRegion lastRefreshedMapRegion;
@@ -63,7 +64,6 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 
     self.configuration = KPTreeControllerReworkDefaultConfiguration;
     self.clusteringAlgorithm = [[KPGridClusteringAlgorithm alloc] init];
-    self.clusteringAlgorithm.mapView = self.mapView;
     self.clusteringAlgorithm.controller = self;
 
     return self;
@@ -76,13 +76,13 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
     self.annotationTree = [[KPAnnotationTree alloc] initWithAnnotations:annotations];
     self.clusteringAlgorithm.annotationTree = self.annotationTree;
 
-    [self.clusteringAlgorithm _updateVisibileMapAnnotationsOnMapView:NO];
+    [self _updateVisibileMapAnnotationsOnMapView:NO];
 }
 
 - (void)refresh:(BOOL)animated {
     
     if (MKMapRectIsNull(self.lastRefreshedMapRect) || [self _mapWasZoomed] || [self _mapWasPannedSignificantly]) {
-        [self.clusteringAlgorithm _updateVisibileMapAnnotationsOnMapView:animated && [self _mapWasZoomed]];
+        [self _updateVisibileMapAnnotationsOnMapView:animated && [self _mapWasZoomed]];
 
         self.lastRefreshedMapRect = self.mapView.visibleMapRect;
         self.lastRefreshedMapRegion = self.mapView.region;
@@ -112,6 +112,108 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 
 #pragma mark - Private
 
+
+- (void)_updateVisibileMapAnnotationsOnMapView:(BOOL)animated {
+    NSSet *visibleAnnotations = [self.mapView annotationsInMapRect:[self.mapView visibleMapRect]];
+
+    /*
+     bigRect = MKMapRectInset(self.mapView.visibleMapRect,
+     -self.mapView.visibleMapRect.size.width,
+     -self.mapView.visibleMapRect.size.height);
+
+     if (MKMapRectGetHeight(bigRect) > MKMapRectGetHeight(MKMapRectWorld) ||
+     MKMapRectGetWidth(bigRect) > MKMapRectGetWidth(MKMapRectWorld)) {
+     bigRect = MKMapRectWorld;
+     }
+     */
+
+
+    // Calculate the grid size in terms of MKMapPoints.
+    double widthPercentage = self.configuration.gridSize.width / CGRectGetWidth(self.mapView.frame);
+    double heightPercentage = self.configuration.gridSize.height / CGRectGetHeight(self.mapView.frame);
+
+    MKMapSize cellSize = MKMapSizeMake(
+        ceil(widthPercentage * self.mapView.visibleMapRect.size.width),
+        ceil(heightPercentage * self.mapView.visibleMapRect.size.height)
+    );
+
+    MKMapRect mapRect = self.mapView.visibleMapRect;
+
+    // Normalize grid to a cell size.
+    mapRect.origin.x -= fmod(MKMapRectGetMinX(mapRect), cellSize.width);
+    mapRect.origin.y -= fmod(MKMapRectGetMinY(mapRect), cellSize.height);
+
+    mapRect.size.width  += (cellSize.width - fmod(MKMapRectGetWidth(mapRect), cellSize.width));
+    mapRect.size.height += (cellSize.height - fmod(MKMapRectGetHeight(mapRect), cellSize.height));
+
+    
+    NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize];
+
+
+    NSArray *oldClusters = [[[self.mapView annotationsInMapRect:mapRect] allObjects] kp_filter:^BOOL(id annotation) {
+        if([annotation isKindOfClass:[KPAnnotation class]]){
+            return YES;
+            return ([self.annotationTree.annotations containsObject:[[(KPAnnotation*)annotation annotations] anyObject]]);
+        }
+        else {
+            return NO;
+        }
+    }];
+
+    if (animated) {
+
+        for(KPAnnotation *newCluster in newClusters){
+
+            [self.mapView addAnnotation:newCluster];
+
+            // if was part of an old cluster, then we want to animate it from the old to the new (spreading animation)
+
+            for(KPAnnotation *oldCluster in oldClusters){
+
+                BOOL shouldAnimate = ![oldCluster.annotations isEqualToSet:newCluster.annotations];
+
+                if([oldCluster.annotations member:[newCluster.annotations anyObject]]){
+
+                    if([visibleAnnotations member:oldCluster] && shouldAnimate){
+                        [self _animateCluster:newCluster
+                                          fromAnnotation:oldCluster
+                                            toAnnotation:newCluster
+                                              completion:nil];
+                    }
+
+                    [self.mapView removeAnnotation:oldCluster];
+                }
+
+                // if the new cluster had old annotations, then animate the old annotations to the new one, and remove it
+                // (collapsing animation)
+
+                else if([newCluster.annotations member:[oldCluster.annotations anyObject]]){
+
+                    if(MKMapRectContainsPoint(self.mapView.visibleMapRect, MKMapPointForCoordinate(newCluster.coordinate)) && shouldAnimate){
+
+                        [self _animateCluster:oldCluster
+                                          fromAnnotation:oldCluster
+                                            toAnnotation:newCluster
+                                              completion:^(BOOL finished) {
+                                                  [self.mapView removeAnnotation:oldCluster];
+                                              }];
+                    }
+                    else {
+                        [self.mapView removeAnnotation:oldCluster];
+                    }
+                    
+                }
+            }
+        }
+        
+    }
+    else {
+        [self.mapView removeAnnotations:oldClusters];
+        [self.mapView addAnnotations:newClusters];
+    }
+
+    
+}
 
 - (void)_animateCluster:(KPAnnotation *)cluster
          fromAnnotation:(KPAnnotation *)fromAnnotation

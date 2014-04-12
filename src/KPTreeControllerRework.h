@@ -34,6 +34,8 @@ typedef struct {
 
 @interface KPTreeControllerRework : NSObject
 
+@property (nonatomic) MKMapView *mapView;
+
 @property (nonatomic, weak) id<KPTreeControllerReworkDelegate> delegate;
 @property (nonatomic) KPTreeControllerReworkConfiguration configuration;
 @property (nonatomic, strong) id <KPClusteringAlgorithm> clusteringAlgorithm;

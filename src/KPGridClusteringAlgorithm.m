@@ -61,19 +61,19 @@ static const int KPClusterConformityTable[8] = {
 /*
  Example: if we have cluster point distributed to first quadrant, then the only adjacent clusters we need to check are 0, 1 and 2, the rest of clusters may be skipped for this current cluster.
 
- ------ -------- --------
- |        |        |
- cl.3 |  cl.2  |  cl.1  |
- |        |        |
- ------ -------- --------
- |  2   1 |        |
- cl.4 | current|  cl.0  |  // the middle cell is the every current cluster in -mergeOverlappingClusters
- |  3   4 |        |
- ------ -------- --------
- |        |        |
- cl.5 |  cl.6  |  cl.7  |
- |        |        |
- ------ -------- --------
+  -------- -------- --------
+ |        |        |        |
+ |  cl.3  |  cl.2  |  cl.1  |
+ |        |        |        |
+  -------- -------- --------
+ |  2   1 |        |        |
+ |  cl.4  | current|  cl.0  |  // the middle cell is the every current cluster in -mergeOverlappingClusters
+ |  3   4 |        |        |
+  -------- -------- --------
+ |        |        |        |
+ |  cl.5  |  cl.6  |  cl.7  |
+ |        |        |        |
+  -------- -------- --------
  */
 static const int KPClusterAdjacentClustersTable[4][3] = {
     {0, 1, 2},
@@ -92,6 +92,7 @@ static const int KPAdjacentClustersCoordinateDeltas[8][2] = {
     { 0,  1},    // 6
     { 1,  1}     // 7
 };
+
 
 typedef struct {
     MKMapRect mapRect;
@@ -128,51 +129,16 @@ typedef enum {
 
 @implementation KPGridClusteringAlgorithm
 
-@synthesize mapView        = _mapView,
-            annotationTree = _annotationTree,
+@synthesize annotationTree = _annotationTree,
             controller     = _controller;
 
 
-- (void)_updateVisibileMapAnnotationsOnMapView:(BOOL)animated
-{
-    NSAssert(self.mapView, nil);
-    NSAssert(self.controller, nil);
-    NSAssert(self.annotationTree, nil);
+- (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize {
+    NSAssert(MKMapRectGetWidth(mapRect)  > cellSize.width, nil);
+    NSAssert(MKMapRectGetHeight(mapRect) > cellSize.height, nil);
 
-    NSSet *visibleAnnotations = [self.mapView annotationsInMapRect:[self.mapView visibleMapRect]];
-
-    // Updates visible map rect plus a map view's worth of padding around it.
-    MKMapRect bigRect = self.mapView.visibleMapRect;
-
-    /*
-     bigRect = MKMapRectInset(self.mapView.visibleMapRect,
-     -self.mapView.visibleMapRect.size.width,
-     -self.mapView.visibleMapRect.size.height);
-
-     if (MKMapRectGetHeight(bigRect) > MKMapRectGetHeight(MKMapRectWorld) ||
-     MKMapRectGetWidth(bigRect) > MKMapRectGetWidth(MKMapRectWorld)) {
-     bigRect = MKMapRectWorld;
-     }
-     */
-
-
-    // Calculate the grid size in terms of MKMapPoints.
-    double widthPercentage = self.controller.configuration.gridSize.width / CGRectGetWidth(self.mapView.frame);
-    double heightPercentage = self.controller.configuration.gridSize.height / CGRectGetHeight(self.mapView.frame);
-
-    double widthInterval = ceil(widthPercentage * self.mapView.visibleMapRect.size.width);
-    double heightInterval = ceil(heightPercentage * self.mapView.visibleMapRect.size.height);
-
-
-    // Normalize rect to a cell size.
-    bigRect.origin.x -= fmod(MKMapRectGetMinX(bigRect), widthInterval);
-    bigRect.origin.y -= fmod(MKMapRectGetMinY(bigRect), heightInterval);
-
-    bigRect.size.width += (widthInterval - fmod(MKMapRectGetWidth(bigRect), widthInterval));
-    bigRect.size.height += (heightInterval - fmod(MKMapRectGetHeight(bigRect), heightInterval));
-
-    int gridSizeX = bigRect.size.width / widthInterval;
-    int gridSizeY = bigRect.size.height / heightInterval;
+    int gridSizeX = mapRect.size.width / cellSize.width;
+    int gridSizeY = mapRect.size.height / cellSize.height;
 
     // We initialize with a rough estimate for size, as to minimize allocations.
     __block NSMutableArray *newClusters = [[NSMutableArray alloc] initWithCapacity:(gridSizeX * gridSizeY)];
@@ -222,10 +188,10 @@ typedef enum {
         for(int j = 1; j < (gridSizeY + 1); j++){
             counter++;
 
-            int x = bigRect.origin.x + i * widthInterval;
-            int y = bigRect.origin.y + j * heightInterval;
+            int x = mapRect.origin.x + i * cellSize.width;
+            int y = mapRect.origin.y + j * cellSize.height;
 
-            MKMapRect gridRect = MKMapRectMake(x, y, widthInterval, heightInterval);
+            MKMapRect gridRect = MKMapRectMake(x, y, cellSize.width, cellSize.height);
 
             NSArray *newAnnotations = [self.annotationTree annotationsInMapRect:gridRect];
 
@@ -304,68 +270,8 @@ typedef enum {
     free(clusterGrid);
     free(clusterStorage);
 
-    NSArray *oldClusters = [[[self.mapView annotationsInMapRect:bigRect] allObjects] kp_filter:^BOOL(id annotation) {
-        if([annotation isKindOfClass:[KPAnnotation class]]){
-            return YES;
-            return ([self.annotationTree.annotations containsObject:[[(KPAnnotation*)annotation annotations] anyObject]]);
-        }
-        else {
-            return NO;
-        }
-    }];
 
-    if (animated) {
-
-        for(KPAnnotation *newCluster in newClusters){
-
-            [self.mapView addAnnotation:newCluster];
-
-            // if was part of an old cluster, then we want to animate it from the old to the new (spreading animation)
-
-            for(KPAnnotation *oldCluster in oldClusters){
-
-                BOOL shouldAnimate = ![oldCluster.annotations isEqualToSet:newCluster.annotations];
-
-                if([oldCluster.annotations member:[newCluster.annotations anyObject]]){
-
-                    if([visibleAnnotations member:oldCluster] && shouldAnimate){
-                        [self.controller _animateCluster:newCluster
-                               fromAnnotation:oldCluster
-                                 toAnnotation:newCluster
-                                   completion:nil];
-                    }
-
-                    [self.mapView removeAnnotation:oldCluster];
-                }
-
-                // if the new cluster had old annotations, then animate the old annotations to the new one, and remove it
-                // (collapsing animation)
-
-                else if([newCluster.annotations member:[oldCluster.annotations anyObject]]){
-
-                    if(MKMapRectContainsPoint(self.mapView.visibleMapRect, MKMapPointForCoordinate(newCluster.coordinate)) && shouldAnimate){
-
-                        [self.controller _animateCluster:oldCluster
-                               fromAnnotation:oldCluster
-                                 toAnnotation:newCluster
-                                   completion:^(BOOL finished) {
-                                       [self.mapView removeAnnotation:oldCluster];
-                                   }];
-                    }
-                    else {
-                        [self.mapView removeAnnotation:oldCluster];
-                    }
-                    
-                }
-            }
-        }
-        
-    }
-    else {
-        [self.mapView removeAnnotations:oldClusters];
-        [self.mapView addAnnotations:newClusters];
-    }
-    
+    return newClusters;
 }
 
 
@@ -390,13 +296,13 @@ typedef enum {
         // if the two views overlap, merge them
 
         if (cluster1._annotationPointInMapView == nil) {
-            cluster1._annotationPointInMapView = [NSValue valueWithCGPoint:[self.mapView convertCoordinate:cluster1.coordinate
-                                                                                             toPointToView:self.mapView]];
+            cluster1._annotationPointInMapView = [NSValue valueWithCGPoint:[self.controller.mapView convertCoordinate:cluster1.coordinate
+                                                                                             toPointToView:self.controller.mapView]];
         }
 
         if (cluster2._annotationPointInMapView == nil) {
-            cluster2._annotationPointInMapView = [NSValue valueWithCGPoint:[self.mapView convertCoordinate:cluster2.coordinate
-                                                                                             toPointToView:self.mapView]];
+            cluster2._annotationPointInMapView = [NSValue valueWithCGPoint:[self.controller.mapView convertCoordinate:cluster2.coordinate
+                                                                                             toPointToView:self.controller.mapView]];
         }
 
         CGPoint p1 = [cluster1._annotationPointInMapView CGPointValue];
