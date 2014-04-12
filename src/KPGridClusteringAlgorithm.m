@@ -130,9 +130,8 @@ typedef enum {
 @implementation KPGridClusteringAlgorithm
 
 - (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize annotationTree:(KPAnnotationTree *)annotationTree {
-    NSAssert(fmod(MKMapRectGetWidth(mapRect),  cellSize.width)  == 0.0, nil);
-    NSAssert(fmod(MKMapRectGetHeight(mapRect), cellSize.height) == 0.0, nil);
-
+    assert(((uint32_t)mapRect.size.width  % (uint32_t)cellSize.width)  == 0);
+    assert(((uint32_t)mapRect.size.height % (uint32_t)cellSize.height) == 0);
 
     int gridSizeX = mapRect.size.width / cellSize.width;
     int gridSizeY = mapRect.size.height / cellSize.height;
