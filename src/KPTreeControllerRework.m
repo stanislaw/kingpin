@@ -154,6 +154,7 @@ typedef enum {
 
     NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize annotationTree:self.annotationTree panning:(mapViewportChangeState == KPTreeControllerMapViewportPan)];
 
+    
     if ([self.delegate respondsToSelector:@selector(treeController:configureAnnotationForDisplay:)]) {
         for (KPAnnotation *annotation in newClusters) {
             [self.delegate treeController:self configureAnnotationForDisplay:annotation];

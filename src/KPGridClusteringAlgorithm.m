@@ -132,13 +132,16 @@ typedef struct kp_cluster_grid_size_t {
     int Y;
 } kp_cluster_grid_size_t;
 
+
 @interface KPGridClusteringAlgorithm ()
 
 @property (assign, nonatomic) kp_cluster_t *clusterStorage;
 @property (assign, nonatomic) kp_cluster_t ***clusterGrid;
 @property (assign, nonatomic) kp_cluster_grid_size_t gridSize;
+@property (assign, nonatomic) MKMapRect lastClusteredGridRect;
 
-- (void)initializeClusterGridWithSizeX:(NSUInteger)gridSizeX sizeY:(NSUInteger)gridSizeY;
+- (void)_initializeClusterGridWithSizeX:(NSUInteger)gridSizeX sizeY:(NSUInteger)gridSizeY;
+- (void)_freeClusterStorage;
 
 @end
 
@@ -159,6 +162,56 @@ typedef struct kp_cluster_grid_size_t {
     [self _freeClusterStorage];
 }
 
+#pragma mark
+#pragma mark Temporary cluster storage
+
+- (void)_initializeClusterGridWithSizeX:(NSUInteger)gridSizeX sizeY:(NSUInteger)gridSizeY {
+    if (self.gridSize.X < gridSizeX || self.gridSize.Y < gridSizeY) {
+        self.clusterStorage = realloc(self.clusterStorage, (gridSizeX * gridSizeY) * sizeof(kp_cluster_t));
+
+        if (self.clusterStorage == NULL) {
+            exit(1);
+        }
+
+        self.clusterGrid = realloc(self.clusterGrid, (gridSizeX + 2) * sizeof(kp_cluster_t **));
+
+        if (self.clusterGrid == NULL) {
+            exit(1);
+        }
+
+        BOOL gridEmpty = (self.gridSize.X == 0);
+        size_t positionOfFirstNewCell = self.gridSize.X + 2 * (gridEmpty == NO);
+        size_t numberOfNewCells = (gridSizeX - self.gridSize.X) + 2 * gridEmpty;
+
+        //NSLog(@"positionOfFirstNeCell, numberOfNewCells %ld %ld", positionOfFirstNewCell, numberOfNewCells);
+
+        memset(self.clusterGrid + positionOfFirstNewCell, 0, numberOfNewCells * sizeof(kp_cluster_t **));
+
+        for (int i = 0; i < (gridSizeX + 2); i++) {
+            //NSLog(@"%d", self.clusterGrid[i] == NULL);
+
+            self.clusterGrid[i] = realloc(self.clusterGrid[i], (gridSizeY + 2) * sizeof(kp_cluster_t *));
+
+            if (self.clusterGrid[i] == NULL) {
+                exit(1);
+            }
+        }
+
+        self.gridSize = (kp_cluster_grid_size_t){ gridSizeX, gridSizeY };
+    }
+
+    for (int i = 0; i < (gridSizeX + 2); i++) {
+        memset(self.clusterGrid[i], 0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
+    }
+
+    /* Validation (Debug, remove later) */
+    for (int i = 0; i < (gridSizeX + 2); i++) {
+        for (int j = 0; j < (gridSizeY + 2); j++) {
+            assert(self.clusterGrid[i][j] == NULL);
+        }
+    }
+}
+
 - (void)_freeClusterStorage {
     for (int i = 0; i < self.gridSize.X; i++) {
         free(self.clusterGrid[i]);
@@ -167,6 +220,9 @@ typedef struct kp_cluster_grid_size_t {
     free(self.clusterGrid);
     free(self.clusterStorage);
 }
+
+#pragma mark
+#pragma mark Grid clustering algorithm
 
 - (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize annotationTree:(KPAnnotationTree *)annotationTree panning:(BOOL)panning {
     assert(((uint32_t)mapRect.size.width  % (uint32_t)cellSize.width)  == 0);
@@ -192,13 +248,18 @@ typedef struct kp_cluster_grid_size_t {
      We will use this NULL margin in -mergeOverlappingClusters method to avoid four- or even eight-fold branching when checking boundaries of i and j coordinates
      */
 
+    NSLog(@"MapRect: %f %f %f %f", mapRect.size.width, mapRect.size.height, mapRect.origin.x, mapRect.origin.y);
+    
     NSLog(@"Grid: (X, Y) => (%d, %d)", gridSizeX, gridSizeY);
 
     if ((self.clusterStorage == NULL && self.clusterGrid == NULL) || panning == NO) {
-        [self initializeClusterGridWithSizeX:gridSizeX sizeY:gridSizeY];
+        [self _initializeClusterGridWithSizeX:gridSizeX sizeY:gridSizeY];
     } else {
         assert(self.gridSize.X == gridSizeX);
         assert(self.gridSize.Y == gridSizeY);
+
+        NSLog(@"diffx and cellsize: %f %f", self.lastClusteredGridRect.origin.x - mapRect.origin.x, cellSize.width);
+        assert(((uint32_t)fabs(self.lastClusteredGridRect.origin.x - mapRect.origin.x) % (uint32_t)cellSize.width) == 0);
     }
 
 
@@ -261,6 +322,9 @@ typedef struct kp_cluster_grid_size_t {
 
 
     newClusters = (NSMutableArray *)[self _mergeOverlappingClusters:newClusters inClusterGrid:self.clusterGrid gridSizeX:gridSizeX gridSizeY:gridSizeY];
+
+
+    self.lastClusteredGridRect = mapRect;
 
 
     return newClusters;
@@ -380,65 +444,5 @@ typedef struct kp_cluster_grid_size_t {
     
     return mutableClusters;
 }
-
-
-- (void)initializeClusterGridWithSizeX:(NSUInteger)gridSizeX sizeY:(NSUInteger)gridSizeY {
-    if (self.gridSize.X < gridSizeX || self.gridSize.Y < gridSizeY) {
-        kp_cluster_t *largerClusterStorage = realloc(self.clusterStorage, (gridSizeX * gridSizeY) * sizeof(kp_cluster_t));
-
-        if (largerClusterStorage != NULL) {
-            self.clusterStorage = largerClusterStorage;
-        } else {
-            abort();
-        }
-
-        kp_cluster_t ***largerClusterGrid = realloc(self.clusterGrid, (gridSizeX + 2) * sizeof(kp_cluster_t **));
-
-        if (largerClusterGrid != NULL) {
-            self.clusterGrid = largerClusterGrid;
-        } else {
-            abort();
-        }
-
-        BOOL gridEmpty = (self.gridSize.X == 0);
-        size_t positionOfFirstNewCell = self.gridSize.X + 2 * (gridEmpty == NO);
-        size_t numberOfNewCells = (gridSizeX - self.gridSize.X) + 2 * gridEmpty;
-
-        //NSLog(@"positionOfFirstNeCell, numberOfNewCells %ld %ld", positionOfFirstNewCell, numberOfNewCells);
-
-        memset(self.clusterGrid + positionOfFirstNewCell, 0, numberOfNewCells * sizeof(kp_cluster_t **));
-
-        for (int i = 0; i < (gridSizeX + 2); i++) {
-            //NSLog(@"%d", self.clusterGrid[i] == NULL);
-
-            self.clusterGrid[i] = realloc(self.clusterGrid[i], (gridSizeY + 2) * sizeof(kp_cluster_t *));
-
-            if (self.clusterGrid[i] == NULL) {
-                abort();
-            }
-
-            // First and last elements are marginal NULL
-            self.clusterGrid[i][0] = NULL;
-            self.clusterGrid[i][gridSizeY + 1] = NULL;
-        }
-
-        self.gridSize = (kp_cluster_grid_size_t){ gridSizeX, gridSizeY };
-    }
-
-    // memset() is the fastest way to NULLify marginal first and last rows of clusterGrid.
-    memset(self.clusterGrid[0],             0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
-    memset(self.clusterGrid[gridSizeX + 1], 0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
-
-    /* Validation (Debug, remove later) */
-    for (int i = 0; i < (gridSizeX + 2); i++) {
-        assert(self.clusterGrid[i][0] == NULL);
-        assert(self.clusterGrid[i][gridSizeY + 1] == NULL);
-    }
-    for (int i = 0; i < (gridSizeY + 2); i++) {
-        assert(self.clusterGrid[0][i] == NULL);
-        assert(self.clusterGrid[gridSizeX + 1][0] == NULL);
-    }
-}
-
 
 @end

@@ -13,11 +13,17 @@
 static inline MKMapRect MKMapRectNormalizeToCellSize(MKMapRect mapRect, MKMapSize cellSize) {
     MKMapRect normalizedRect = mapRect;
 
-    normalizedRect.origin.x -= ceil(fmod(normalizedRect.origin.x, cellSize.width));
-    normalizedRect.origin.y -= ceil(fmod(normalizedRect.origin.y, cellSize.height));
+    normalizedRect.origin.x -= fmod(normalizedRect.origin.x, cellSize.width);
+    normalizedRect.origin.y -= fmod(normalizedRect.origin.y, cellSize.height);
 
-    normalizedRect.size.width  += ceil((cellSize.width  - fmod(normalizedRect.size.width, cellSize.width)));
-    normalizedRect.size.height += ceil((cellSize.height - fmod(normalizedRect.size.height, cellSize.height)));
+    normalizedRect.origin.x = round(normalizedRect.origin.x);
+    normalizedRect.origin.y = round(normalizedRect.origin.y);
+
+    normalizedRect.size.width  += (cellSize.width  - fmod(normalizedRect.size.width, cellSize.width));
+    normalizedRect.size.height += (cellSize.height - fmod(normalizedRect.size.height, cellSize.height));
+
+    normalizedRect.size.width = round(normalizedRect.size.width);
+    normalizedRect.size.height = round(normalizedRect.size.height);
 
     //NSLog(@"normalized rect %f %f", normalizedRect.size.width,  normalizedRect.size.height);
 
