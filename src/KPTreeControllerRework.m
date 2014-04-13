@@ -161,7 +161,7 @@ typedef enum {
         }
     }
 
-    NSArray *oldClusters = [[[self.mapView annotationsInMapRect:mapRect] allObjects] kp_filter:^BOOL(id annotation) {
+    NSArray *oldClusters = [self.mapView.annotations kp_filter:^BOOL(id annotation) {
         if([annotation isKindOfClass:[KPAnnotation class]]){
             if (mapViewportChangeState == KPTreeControllerMapViewportPan) {
                 MKMapPoint annotationPoint = MKMapPointForCoordinate([annotation coordinate]);
