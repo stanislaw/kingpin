@@ -184,7 +184,14 @@ static const int kNumberOfTestAnnotations = 20000;
     }
     
     return v;
-    
+}
+
+- (MKOverlayView *)mapView:(MKMapView *)mapView viewForOverlay:(id <MKOverlay>)overlay {
+    MKPolylineView *polylineView = [[MKPolylineView alloc] initWithPolyline:overlay];
+    polylineView.strokeColor = [UIColor redColor];
+    polylineView.lineWidth = 1.0;
+
+    return polylineView;
 }
 
 #pragma mark - KPTreeControllerDelegate

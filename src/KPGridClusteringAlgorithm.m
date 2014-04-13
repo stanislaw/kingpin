@@ -154,6 +154,7 @@ typedef struct kp_cluster_grid_size_t {
     if (self == nil) return nil;
 
     self.gridSize = (kp_cluster_grid_size_t){0, 0};
+    self.lastClusteredGridRect = (MKMapRect){0, 0};
 
     return self;
 }
@@ -276,9 +277,15 @@ typedef struct kp_cluster_grid_size_t {
             int x = mapRect.origin.x + (i - 1) * cellSize.width;
             int y = mapRect.origin.y + (j - 1) * cellSize.height;
 
-            MKMapRect gridRect = MKMapRectMake(x, y, cellSize.width, cellSize.height);
+            MKMapRect cellRect = MKMapRectMake(x, y, cellSize.width, cellSize.height);
 
-            NSArray *newAnnotations = [annotationTree annotationsInMapRect:gridRect];
+            if (panning && MKMapRectContainsRect(self.lastClusteredGridRect, cellRect)) {
+                self.clusterGrid[i][j] = NULL;
+
+                continue;
+            }
+
+            NSArray *newAnnotations = [annotationTree annotationsInMapRect:cellRect];
 
             // cluster annotations in this grid piece, if there are annotations to be clustered
             if (newAnnotations.count > 0) {
@@ -286,11 +293,11 @@ typedef struct kp_cluster_grid_size_t {
                 [newClusters addObject:annotation];
 
                 kp_cluster_t *cluster = self.clusterStorage + clusterIndex;
-                cluster->mapRect = gridRect;
+                cluster->mapRect = cellRect;
                 cluster->annotationIndex = clusterIndex;
                 cluster->merged = NO;
 
-                cluster->distributionQuadrant = KPClusterDistributionQuadrantForPointInsideMapRect(gridRect, MKMapPointForCoordinate(annotation.coordinate));
+                cluster->distributionQuadrant = KPClusterDistributionQuadrantForPointInsideMapRect(cellRect, MKMapPointForCoordinate(annotation.coordinate));
 
                 self.clusterGrid[i][j] = cluster;
 

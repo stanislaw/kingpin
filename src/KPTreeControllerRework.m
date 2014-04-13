@@ -144,12 +144,12 @@ typedef enum {
     // Normalize grid to a cell size.
     mapRect = MKMapRectNormalizeToCellSize(mapRect, cellSize);
 
-    // Add small padding
-    mapRect = MKMapRectInset(
-        mapRect,
-        - 2 * cellSize.width,
-        - 2 * cellSize.height
-    );
+//    // Add small padding
+//    mapRect = MKMapRectInset(
+//        mapRect,
+//        - 2 * cellSize.width,
+//        - 2 * cellSize.height
+//    );
 
 
     NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize annotationTree:self.annotationTree panning:(mapViewportChangeState == KPTreeControllerMapViewportPan)];
@@ -163,8 +163,18 @@ typedef enum {
 
     NSArray *oldClusters = [[[self.mapView annotationsInMapRect:mapRect] allObjects] kp_filter:^BOOL(id annotation) {
         if([annotation isKindOfClass:[KPAnnotation class]]){
-            return YES;
-            return ([self.annotationTree.annotations containsObject:[[(KPAnnotation*)annotation annotations] anyObject]]);
+            if (mapViewportChangeState == KPTreeControllerMapViewportPan) {
+                MKMapPoint annotationPoint = MKMapPointForCoordinate([annotation coordinate]);
+
+                if (MKMapRectContainsPoint(mapRect, annotationPoint) == NO) {
+                    return YES;
+                } else {
+                    return NO;
+                }
+            } else {
+                return YES;
+                return ([self.annotationTree.annotations containsObject:[[(KPAnnotation*)annotation annotations] anyObject]]);
+            }
         }
         else {
             return NO;
@@ -223,7 +233,16 @@ typedef enum {
         [self.mapView addAnnotations:newClusters];
     }
 
-    
+    MKMapPoint points[5];
+    points[0] = mapRect.origin;
+    points[1] = MKMapPointMake(mapRect.origin.x + mapRect.size.width, mapRect.origin.y);
+    points[2] = MKMapPointMake(mapRect.origin.x + mapRect.size.width, mapRect.origin.y + mapRect.size.height);
+    points[3] = MKMapPointMake(mapRect.origin.x, mapRect.origin.y + mapRect.size.height);
+    points[4] = mapRect.origin;
+
+    [self.mapView removeOverlays:self.mapView.overlays];
+    [self.mapView addOverlay:[MKPolyline polylineWithPoints:points count:5]];
+
 }
 
 - (void)_animateCluster:(KPAnnotation *)cluster
