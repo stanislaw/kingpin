@@ -41,6 +41,12 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 };
 
 
+typedef enum {
+    KPTreeControllerMapViewportNoChange,
+    KPTreeControllerMapViewportPan,
+    KPTreeControllerMapViewportZoom
+} KPTreeControllerMapViewportChangeState;
+
 @interface KPTreeControllerRework()
 
 @property (nonatomic, strong) MKMapView *mapView;
@@ -48,7 +54,7 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 @property (nonatomic, strong) KPGridClusteringAlgorithm *clusteringAlgorithm;
 
 @property (nonatomic) MKMapRect lastRefreshedMapRect;
-@property (nonatomic) MKCoordinateRegion lastRefreshedMapRegion;
+@property (readonly, nonatomic) KPTreeControllerMapViewportChangeState mapViewportChangeState;
 
 @end
 
@@ -64,6 +70,8 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
 
     self.mapView = mapView;
 
+    self.lastRefreshedMapRect = self.mapView.visibleMapRect;
+
     self.configuration = KPTreeControllerReworkDefaultConfiguration;
     self.clusteringAlgorithm = [[KPGridClusteringAlgorithm alloc] init];
     self.clusteringAlgorithm.delegate = self;
@@ -71,52 +79,43 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
     return self;
 }
 
+// only refresh if:
+// - the map has been zoomed
+// - the map has been panned significantly
+- (KPTreeControllerMapViewportChangeState)mapViewportChangeState {
+    if (MKMapRectEqualToRect(self.mapView.visibleMapRect, self.lastRefreshedMapRect)) {
+        return KPTreeControllerMapViewportNoChange;
+    }
+
+    if (fabs(self.lastRefreshedMapRect.size.width - self.mapView.visibleMapRect.size.width) > 0.1f) {
+        return KPTreeControllerMapViewportZoom;
+    }
+
+    return KPTreeControllerMapViewportPan;
+}
+
 - (void)setAnnotations:(NSArray *)annotations {
     [self.mapView removeAnnotations:[self.annotationTree.annotations allObjects]];
 
     self.annotationTree = [[KPAnnotationTree alloc] initWithAnnotations:annotations];
 
-    [self _updateVisibileMapAnnotationsOnMapView:NO];
+    [self _updateVisibileMapAnnotationsOnMapView:NO mapViewportChangeState:KPTreeControllerMapViewportZoom];
 }
 
 - (void)refresh:(BOOL)animated {
-    
-    if (MKMapRectIsNull(self.lastRefreshedMapRect) || [self _mapWasZoomed] || [self _mapWasPannedSignificantly]) {
-        [self _updateVisibileMapAnnotationsOnMapView:animated && [self _mapWasZoomed]];
+    KPTreeControllerMapViewportChangeState mapViewportChangeState = self.mapViewportChangeState;
+
+    if (mapViewportChangeState != KPTreeControllerMapViewportNoChange) {
+        [self _updateVisibileMapAnnotationsOnMapView:animated mapViewportChangeState:mapViewportChangeState];
 
         self.lastRefreshedMapRect = self.mapView.visibleMapRect;
-        self.lastRefreshedMapRegion = self.mapView.region;
     }
 }
 
-// only refresh if:
-// - the map has been zoomed
-// - the map has been panned significantly
-
-- (BOOL)_mapWasZoomed {
-    return (fabs(self.lastRefreshedMapRect.size.width - self.mapView.visibleMapRect.size.width) > 0.1f);
-}
-
-- (BOOL)_mapWasPannedSignificantly {
-    /*
-    CGPoint lastPoint = [self.mapView convertCoordinate:self.lastRefreshedMapRegion.center
-                                          toPointToView:self.mapView];
-    
-    CGPoint currentPoint = [self.mapView convertCoordinate:self.mapView.region.center
-                                             toPointToView:self.mapView];
-
-    (fabs(lastPoint.x - currentPoint.x) > self.mapView.frame.size.width) ||
-    (fabs(lastPoint.y - currentPoint.y) > self.mapView.frameg.size.height);
-     */
-
-    return YES;
-}
-
-
-#pragma mark 
+#pragma mark
 #pragma mark Private
 
-- (void)_updateVisibileMapAnnotationsOnMapView:(BOOL)animated {
+- (void)_updateVisibileMapAnnotationsOnMapView:(BOOL)animated mapViewportChangeState:(KPTreeControllerMapViewportChangeState)mapViewportChangeState {
     NSSet *visibleAnnotations = [self.mapView annotationsInMapRect:[self.mapView visibleMapRect]];
 
     /*
@@ -153,7 +152,7 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
     );
 
 
-    NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize annotationTree:self.annotationTree];
+    NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize annotationTree:self.annotationTree panning:(mapViewportChangeState == KPTreeControllerMapViewportPan)];
 
     if ([self.delegate respondsToSelector:@selector(treeController:configureAnnotationForDisplay:)]) {
         for (KPAnnotation *annotation in newClusters) {
@@ -171,7 +170,7 @@ static KPTreeControllerReworkConfiguration KPTreeControllerReworkDefaultConfigur
         }
     }];
 
-    if (animated) {
+    if (animated && (mapViewportChangeState == KPTreeControllerMapViewportZoom)) {
 
         for(KPAnnotation *newCluster in newClusters){
 
