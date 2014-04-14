@@ -16,3 +16,6 @@
 @interface KPGridClusteringAlgorithm : NSObject <KPClusteringAlgorithm>
 @property (weak, nonatomic) id <KPGridClusteringAlgorithmDelegate> delegate;
 @end
+
+
+

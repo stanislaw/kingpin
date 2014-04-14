@@ -17,7 +17,7 @@
 @interface KPAnnotationTreeTests : XCTestCase
 @end
 
-static NSUInteger const kNumberOfTestAnnotations = 50000;
+static NSUInteger const kNumberOfTestAnnotations = 2000;
 
 @implementation KPAnnotationTreeTests
 
