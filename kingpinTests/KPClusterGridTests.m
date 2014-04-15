@@ -68,6 +68,9 @@
             for (int i = 1; i < (gridSizeX + 1); i++) {
                 kp_cluster_t *cluster = clusterStorage + clusterIndex;
                 cluster->annotationIndex = clusterIndex;
+                cluster->clusterType = KPClusterGridCellSingle;
+                cluster->annotation = nil;
+                cluster->distributionQuadrant = 0;
 
                 clusterGrid[i][j] = cluster;
                 

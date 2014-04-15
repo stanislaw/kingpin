@@ -152,7 +152,10 @@ typedef enum {
 //    );
 
 
-    NSArray *newClusters = [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize annotationTree:self.annotationTree panning:(mapViewportChangeState == KPTreeControllerMapViewportPan)];
+    NSArray *newClusters;
+    NSArray *_oldClusters;
+    
+    [self.clusteringAlgorithm performClusteringOfAnnotationsInMapRect:mapRect cellSize:cellSize annotationTree:self.annotationTree panning:(mapViewportChangeState == KPTreeControllerMapViewportPan) newClusters:&newClusters oldClusters:&_oldClusters];
 
     
     if ([self.delegate respondsToSelector:@selector(treeController:configureAnnotationForDisplay:)]) {
@@ -161,7 +164,9 @@ typedef enum {
         }
     }
 
-    NSArray *oldClusters = [self.mapView.annotations kp_filter:^BOOL(id annotation) {
+    NSMutableArray *oldClusters = [NSMutableArray arrayWithArray:_oldClusters];
+
+    [oldClusters addObjectsFromArray:[self.mapView.annotations kp_filter:^BOOL(id annotation) {
         if([annotation isKindOfClass:[KPAnnotation class]]){
             if (mapViewportChangeState == KPTreeControllerMapViewportPan) {
                 MKMapPoint annotationPoint = MKMapPointForCoordinate([annotation coordinate]);
@@ -179,7 +184,7 @@ typedef enum {
         else {
             return NO;
         }
-    }];
+    }]];
 
     if (animated && (mapViewportChangeState == KPTreeControllerMapViewportZoom)) {
 
@@ -233,6 +238,10 @@ typedef enum {
         [self.mapView addAnnotations:newClusters];
     }
 
+    [self drawMapRect:mapRect];
+}
+
+- (void)drawMapRect:(MKMapRect)mapRect {
     MKMapPoint points[5];
     points[0] = mapRect.origin;
     points[1] = MKMapPointMake(mapRect.origin.x + mapRect.size.width, mapRect.origin.y);
@@ -240,9 +249,7 @@ typedef enum {
     points[3] = MKMapPointMake(mapRect.origin.x, mapRect.origin.y + mapRect.size.height);
     points[4] = mapRect.origin;
 
-    [self.mapView removeOverlays:self.mapView.overlays];
     [self.mapView addOverlay:[MKPolyline polylineWithPoints:points count:5]];
-
 }
 
 - (void)_animateCluster:(KPAnnotation *)cluster

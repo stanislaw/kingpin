@@ -17,6 +17,6 @@
 
 @protocol KPClusteringAlgorithm <NSObject>
 
-- (NSArray *)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize annotationTree:(KPAnnotationTree *)annotationTree panning:(BOOL)panning;
+- (void)performClusteringOfAnnotationsInMapRect:(MKMapRect)mapRect cellSize:(MKMapSize)cellSize annotationTree:(KPAnnotationTree *)annotationTree panning:(BOOL)panning newClusters:(NSArray * __autoreleasing *)newClusters oldClusters:(NSArray * __autoreleasing *)oldClusters;
 
 @end

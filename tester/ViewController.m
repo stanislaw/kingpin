@@ -119,6 +119,9 @@ static const int kNumberOfTestAnnotations = 20000;
 
 - (void)mapView:(MKMapView *)mapView regionDidChangeAnimated:(BOOL)animated {
     //[self.treeController refresh:self.animationSwitch.on];
+
+    [self.mapView removeOverlays:self.mapView.overlays];
+
     Benchmark(1, ^{
         [self.treeController2 refresh:self.animationSwitch.on];
     });

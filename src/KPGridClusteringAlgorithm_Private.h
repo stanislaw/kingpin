@@ -84,15 +84,24 @@ static const int KPAdjacentClustersCoordinateDeltas[8][2] = {
 };
 
 
+typedef enum : unsigned char {
+    KPClusterGridCellNone = 0,
+    KPClusterGridCellSingle = 1,
+    KPClusterGridCellMerger = 2,
+    KPClusterGridCellMerged = 3,
+} KPClusterGridCellType;
+
 typedef struct {
     MKMapRect mapRect;
     NSUInteger annotationIndex;
-    BOOL merged;
+    KPClusterGridCellType clusterType;
     KPClusterDistributionQuadrant distributionQuadrant; // One of 0, 1, 2, 4, 8
+    __unsafe_unretained KPAnnotation *annotation;
 } kp_cluster_t;
 
 
 void KPClusterGridMergeWithOldClusterGrid(kp_cluster_t ***clusterGrid, NSUInteger gridSizeX, NSUInteger gridSizeY, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell));
+void KPClusterGridDebug(kp_cluster_t ***clusterGrid, NSUInteger gridSizeX, NSUInteger gridSizeY);
 
 
 static inline KPClusterDistributionQuadrant KPClusterDistributionQuadrantForPointInsideMapRect(MKMapRect mapRect, MKMapPoint point) {
