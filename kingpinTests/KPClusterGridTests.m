@@ -21,11 +21,6 @@
 @interface KPClusterGridTests : XCTestCase
 @end
 
-
-void KPClusterGridReset(kp_cluster_t ***clusterGrid) {
-
-}
-
 @implementation KPClusterGridTests
 
 - (void)testKPClusterGridMergeWithOldClusterGrid {
@@ -94,40 +89,65 @@ void KPClusterGridReset(kp_cluster_t ***clusterGrid) {
         }
     };
 
-    resetClusterGrid();
-    fillClusterGrid();
-    printClusterGrid();
+    {
+        resetClusterGrid();
+        fillClusterGrid();
+        printClusterGrid();
 
-    KPClusterGridMergeWithOldClusterGrid(clusterGrid, gridSizeX, gridSizeY, 1, 1, ^(kp_cluster_t *cluster){
-        NSLog(@"%lu", (unsigned long)cluster->annotationIndex);
-    });
+        KPClusterGridMergeWithOldClusterGrid(clusterGrid, gridSizeX, gridSizeY, 1, 1, ^(kp_cluster_t *cluster){
+            NSLog(@"%lu", (unsigned long)cluster->annotationIndex);
+        });
 
-    printClusterGrid();
+        printClusterGrid();
 
-    XCTAssertTrue(clusterGrid[3][1]->annotationIndex == 7);
-    XCTAssertTrue(clusterGrid[3][2]->annotationIndex == 11);
-    XCTAssertTrue(clusterGrid[3][3]->annotationIndex == 15);
-    XCTAssertTrue(clusterGrid[1][3]->annotationIndex == 13);
-    XCTAssertTrue(clusterGrid[2][3]->annotationIndex == 14);
+        XCTAssertTrue(clusterGrid[3][1]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid[3][2]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid[3][3]->annotationIndex == 15);
+        XCTAssertTrue(clusterGrid[1][3]->annotationIndex == 13);
+        XCTAssertTrue(clusterGrid[2][3]->annotationIndex == 14);
 
-    printf("\n");
+        printf("\n");
+    }
 
-    resetClusterGrid();
-    fillClusterGrid();
-    printClusterGrid();
+    {
+        resetClusterGrid();
+        fillClusterGrid();
+        printClusterGrid();
 
-    KPClusterGridMergeWithOldClusterGrid(clusterGrid, gridSizeX, gridSizeY, -1, -1, ^(kp_cluster_t *cluster){
-        NSLog(@"%lu", (unsigned long)cluster->annotationIndex);
-    });
+        KPClusterGridMergeWithOldClusterGrid(clusterGrid, gridSizeX, gridSizeY, -1, -1, ^(kp_cluster_t *cluster){
+            NSLog(@"%lu", (unsigned long)cluster->annotationIndex);
+        });
 
-    printClusterGrid();
+        printClusterGrid();
 
-    XCTAssertTrue(clusterGrid[2][2]->annotationIndex == 0);
-    XCTAssertTrue(clusterGrid[3][2]->annotationIndex == 1);
-    XCTAssertTrue(clusterGrid[4][2]->annotationIndex == 2);
-    XCTAssertTrue(clusterGrid[2][3]->annotationIndex == 4);
-    XCTAssertTrue(clusterGrid[2][4]->annotationIndex == 8);
+        XCTAssertTrue(clusterGrid[2][2]->annotationIndex == 0);
+        XCTAssertTrue(clusterGrid[3][2]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid[4][2]->annotationIndex == 2);
+        XCTAssertTrue(clusterGrid[2][3]->annotationIndex == 4);
+        XCTAssertTrue(clusterGrid[2][4]->annotationIndex == 8);
 
+        printf("\n");
+    }
+
+    {
+        resetClusterGrid();
+        fillClusterGrid();
+
+        KPClusterGridMergeWithOldClusterGrid(clusterGrid, gridSizeX, gridSizeY, 1, -1, ^(kp_cluster_t *cluster){
+            NSLog(@"%lu", (unsigned long)cluster->annotationIndex);
+        });
+
+        XCTAssertTrue(clusterGrid[0][0] == NULL);
+        XCTAssertTrue(clusterGrid[1][1] == NULL);
+
+        XCTAssertTrue(clusterGrid[1][2]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid[2][2]->annotationIndex == 2);
+        XCTAssertTrue(clusterGrid[3][2]->annotationIndex == 3);
+        XCTAssertTrue(clusterGrid[3][3]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid[3][4]->annotationIndex == 11);
+
+        printClusterGrid();
+    }
 
     /*
      TEARDOWN
