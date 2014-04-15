@@ -129,8 +129,14 @@
         assert(self.gridSize.X == gridSizeX);
         assert(self.gridSize.Y == gridSizeY);
 
-        NSLog(@"diffx and cellsize: %f %f", self.lastClusteredGridRect.origin.x - mapRect.origin.x, cellSize.width);
-        assert(((uint32_t)fabs(self.lastClusteredGridRect.origin.x - mapRect.origin.x) % (uint32_t)cellSize.width) == 0);
+        assert(((uint32_t)fabs(mapRect.origin.x - self.lastClusteredGridRect.origin.x) % (uint32_t)cellSize.width) == 0);
+        assert(((uint32_t)fabs(mapRect.origin.y - self.lastClusteredGridRect.origin.y) % (uint32_t)cellSize.height) == 0);
+
+
+        NSInteger offsetX = (NSInteger)round((mapRect.origin.x - self.lastClusteredGridRect.origin.x) / cellSize.width);
+        NSInteger offsetY = (NSInteger)round((mapRect.origin.y - self.lastClusteredGridRect.origin.y) / cellSize.height);
+
+        NSLog(@"diffx and cellsize: %ld %ld", (long)offsetX, (long)offsetY);
     }
 
 
@@ -185,8 +191,8 @@
     assert(counter == (gridSizeX * gridSizeY));
 
     /* Validation (Debug, remove later) */
-    for(int i = 0; i < gridSizeX; i++){
-        for(int j = 0; j < gridSizeY; j++){
+    for(int i = 0; i < (gridSizeX + 2); i++){
+        for(int j = 0; j < (gridSizeY + 2); j++){
             kp_cluster_t *cluster = self.clusterGrid[i][j];
 
             if (cluster) {
