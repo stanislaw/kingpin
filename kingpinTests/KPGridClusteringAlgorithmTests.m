@@ -57,12 +57,15 @@
     
     randomRect = MKMapRectNormalizeToCellSize(randomRect, cellSize);
 
-    NSArray *clusters = [clusteringAlgorithm performClusteringOfAnnotationsInMapRect:randomRect cellSize:cellSize annotationTree:annotationTree panning:NO];
+    NSArray *newClusters;
+    NSArray *oldClusters;
+
+    [clusteringAlgorithm performClusteringOfAnnotationsInMapRect:randomRect cellSize:cellSize annotationTree:annotationTree panning:NO newClusters:&newClusters oldClusters:&oldClusters];
 
     NSMutableArray *annotationsCollectedFromClusters = [NSMutableArray array];
     NSArray *annotationsBySearch = [annotationTree annotationsInMapRect:randomRect];
 
-    [clusters enumerateObjectsUsingBlock:^(KPAnnotation *clusterAnnotation, NSUInteger idx, BOOL *stop) {
+    [newClusters enumerateObjectsUsingBlock:^(KPAnnotation *clusterAnnotation, NSUInteger idx, BOOL *stop) {
         [annotationsCollectedFromClusters addObjectsFromArray:clusterAnnotation.annotations.allObjects];
     }];
 
