@@ -112,6 +112,8 @@
         printf("\n");
     }
 
+    return;
+    
     {
         resetClusterGrid();
         fillClusterGrid();

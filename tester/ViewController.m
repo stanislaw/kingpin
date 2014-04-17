@@ -128,7 +128,7 @@ static const int kNumberOfTestAnnotations = 20000;
 }
 
 - (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view {
-    
+
     if([view.annotation isKindOfClass:[KPAnnotation class]]){
         
         KPAnnotation *cluster = (KPAnnotation *)view.annotation;

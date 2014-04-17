@@ -85,7 +85,6 @@ static const int KPAdjacentClustersCoordinateDeltas[8][2] = {
 
 
 typedef enum : unsigned char {
-    KPClusterGridCellNone = 0,
     KPClusterGridCellSingle = 1,
     KPClusterGridCellMerger = 2,
     KPClusterGridCellMerged = 3,

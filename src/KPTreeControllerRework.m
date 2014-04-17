@@ -75,7 +75,8 @@ typedef enum {
     self.configuration = KPTreeControllerReworkDefaultConfiguration;
     self.clusteringAlgorithm = [[KPGridClusteringAlgorithm alloc] init];
     self.clusteringAlgorithm.delegate = self;
-
+    self.clusteringAlgorithm.debuggingMapView = self.mapView;
+    
     return self;
 }
 
