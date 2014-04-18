@@ -23,12 +23,14 @@
 
 @implementation KPClusterGridTests
 
+/*
 - (void)testKPClusterGridMergeWithOldClusterGrid {
 
     NSUInteger gridSizeX = 4, gridSizeY = 4;
 
     kp_cluster_t   *clusterStorage = NULL;
-    kp_cluster_t ***clusterGrid    = NULL;
+    kp_cluster_grid_t *clusterGrid;
+    KPClusterGridInit(&clusterGrid, gridSizeX, gridSizeY);
 
     clusterStorage = realloc(clusterStorage, (gridSizeX + 2) * (gridSizeY + 2) * sizeof(kp_cluster_t));
 
@@ -41,22 +43,21 @@
     memset(clusterGrid, 0, (gridSizeX + 2) * sizeof(kp_cluster_t **));
 
     for (int i = 0; i < (gridSizeX + 2); i++) {
-        clusterGrid[i] = realloc(clusterGrid[i], (gridSizeY + 2) * sizeof(kp_cluster_t *));
+        clusterGrid->grid[i] = realloc(clusterGrid->grid[i], (gridSizeY + 2) * sizeof(kp_cluster_t *));
 
-        if (clusterGrid[i] == NULL) {
+        if (clusterGrid->grid[i] == NULL) {
             exit(1);
         }
     }
 
     void (^resetClusterGrid)(void) = ^(void) {
         for (int i = 0; i < (gridSizeX + 2); i++) {
-            memset(clusterGrid[i], 0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
+            memset(clusterGrid->grid[i], 0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
         }
 
-        /* Validation (Debug, remove later) */
         for (int i = 0; i < (gridSizeX + 2); i++) {
             for (int j = 0; j < (gridSizeY + 2); j++) {
-                assert(clusterGrid[i][j] == NULL);
+                assert(clusterGrid->grid[i][j] == NULL);
             }
         }
     };
@@ -72,23 +73,10 @@
                 cluster->annotation = nil;
                 cluster->distributionQuadrant = 0;
 
-                clusterGrid[i][j] = cluster;
+                clusterGrid->grid[i][j] = cluster;
                 
                 clusterIndex++;
             }
-        }
-    };
-
-    void (^printClusterGrid)(void) = ^(void) {
-        for (int j = 0; j < (gridSizeY + 2); j++) {
-            for (int i = 0; i < (gridSizeX + 2); i++) {
-                if (clusterGrid[i][j]) {
-                    printf("[%2d ]  ", clusterGrid[i][j]->annotationIndex);
-                } else {
-                    printf(" NULL  ");
-                }
-            }
-            printf("\n");
         }
     };
 
@@ -97,16 +85,16 @@
         fillClusterGrid();
         printClusterGrid();
 
-        KPClusterGridMergeWithOldClusterGrid(clusterGrid, gridSizeX, gridSizeY, 1, 1, ^(kp_cluster_t *cluster){
+        KPClusterGridMergeWithOldClusterGrid(clusterGrid, 1, 1, ^(kp_cluster_t *cluster){
             NSLog(@"%lu", (unsigned long)cluster->annotationIndex);
         });
 
         printClusterGrid();
 
-        XCTAssertTrue(clusterGrid[3][1]->annotationIndex == 7);
-        XCTAssertTrue(clusterGrid[3][2]->annotationIndex == 11);
-        XCTAssertTrue(clusterGrid[3][3]->annotationIndex == 15);
-        XCTAssertTrue(clusterGrid[1][3]->annotationIndex == 13);
+        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 15);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 13);
         XCTAssertTrue(clusterGrid[2][3]->annotationIndex == 14);
 
         printf("\n");
@@ -154,9 +142,6 @@
         printClusterGrid();
     }
 
-    /*
-     TEARDOWN
-     */
 
     for (int i = 0; i < (gridSizeX + 2); i++) {
         free(clusterGrid[i]);
@@ -166,6 +151,52 @@
     free(clusterGrid);
     free(clusterStorage);
 }
+*/
+
+
+- (void)testKPClusterGridCopy {
+    NSUInteger gridSizeX = 4, gridSizeY = 4;
+
+    kp_cluster_t   *clusterStorage = NULL;
+    kp_cluster_grid_t *clusterGrid = NULL;
+    KPClusterGridInit(&clusterGrid, gridSizeX, gridSizeY);
+
+    clusterStorage = realloc(clusterStorage, (gridSizeX + 2) * (gridSizeY + 2) * sizeof(kp_cluster_t));
+
+    void (^fillClusterGrid)(void) = ^(void) {
+        NSUInteger clusterIndex = 0;
+
+        for (int j = 1; j < (gridSizeY + 1); j++) {
+            for (int i = 1; i < (gridSizeX + 1); i++) {
+                kp_cluster_t *cluster = clusterStorage + clusterIndex;
+                cluster->annotationIndex = clusterIndex;
+                cluster->clusterType = KPClusterGridCellSingle;
+                cluster->annotation = nil;
+                cluster->distributionQuadrant = 0;
+
+                clusterGrid->grid[i][j] = cluster;
+
+                clusterIndex++;
+            }
+        }
+    };
+
+    fillClusterGrid();
+    
+    KPClusterGridDebug(clusterGrid);
+
+    NSUInteger offsetX = 1;
+    NSUInteger offsetY = 1;
+    
+    KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+
+    puts("");
+    KPClusterGridDebug(clusterGrid);
+
+}
+
+
 
 @end
 

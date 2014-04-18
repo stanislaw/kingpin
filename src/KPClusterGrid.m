@@ -88,12 +88,14 @@ void KPClusterGridDebug(kp_cluster_grid_t *clusterGrid) {
 }
 
 
-void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell)) {
-    assert(abs(offsetX) < (int)clusterGrid->size.X);
-    assert(abs(offsetY) < (int)clusterGrid->size.Y);
+void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell)) {
+    kp_cluster_grid_t *_clusterGrid = *clusterGrid;
 
-    NSUInteger gridSizeX = clusterGrid->size.X;
-    NSUInteger gridSizeY = clusterGrid->size.Y;
+    assert(abs(offsetX) < (int)_clusterGrid->size.X);
+    assert(abs(offsetY) < (int)_clusterGrid->size.Y);
+
+    NSUInteger gridSizeX = _clusterGrid->size.X;
+    NSUInteger gridSizeY = _clusterGrid->size.Y;
 
     NSLog(@"Gridsize:(%lu, %lu), offset:(%ld, %ld)", (unsigned long)gridSizeX, (unsigned long)gridSizeY, (long)offsetX, (long)offsetY);
 
@@ -122,7 +124,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInte
         kp_cluster_t *cluster = NULL;
 
         /* first */
-        cluster = clusterGrid->grid[marginX][startYPosition];
+        cluster = _clusterGrid->grid[marginX][startYPosition];
 
         if (cluster != NULL) {
             if (offsetY >= 0) {
@@ -151,7 +153,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInte
         /* non-edge */
         if (numberOfMarginalXCellsToCopyAlongAxisY > 2) {
             for (int j = (startYPosition + 1); j <= (finalYPosition - 1); j++) {
-                cluster = clusterGrid->grid[marginX][j];
+                cluster = _clusterGrid->grid[marginX][j];
 
                 if (cluster) {
                     acceptableDistributionQuadrant = (offsetX > 0) ? (KPClusterDistributionQuadrantFour | KPClusterDistributionQuadrantOne) : KPClusterDistributionQuadrantTwo | KPClusterDistributionQuadrantThree;
@@ -170,7 +172,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInte
 
         /* last */
         if (numberOfMarginalXCellsToCopyAlongAxisY > 1) {
-            cluster = clusterGrid->grid[marginX][finalYPosition];
+            cluster = _clusterGrid->grid[marginX][finalYPosition];
 
             if (cluster != NULL) {
                 if (offsetY <= 0) {
@@ -211,7 +213,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInte
         finalXPosition = (offsetX >= 0) ? ((int)gridSizeX - 1) : ((int)gridSizeX + offsetX);
 
         for (int i = startXPosition; i <= finalXPosition; i++) {
-            kp_cluster_t *cluster = clusterGrid->grid[i][marginY];
+            kp_cluster_t *cluster = _clusterGrid->grid[i][marginY];
 
             marginalYCells[marginalYCellsIndex] = cluster;
 
@@ -229,7 +231,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInte
 
 
     for (int i = 0; i < (gridSizeX + 2); i++) {
-        memset(clusterGrid->grid[i], 0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
+        memset(_clusterGrid->grid[i], 0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
     }
 
     if (offsetX != 0) {
@@ -239,7 +241,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInte
         finalYPosition -= offsetY;
 
         for (int j = startYPosition; j <= finalYPosition; j++) {
-            clusterGrid->grid[marginX][j] = marginalXCells[j - startYPosition];
+            _clusterGrid->grid[marginX][j] = marginalXCells[j - startYPosition];
         }
 
         free(marginalXCells);
@@ -252,12 +254,21 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInte
         finalXPosition -= offsetX;
 
         for (int i = startXPosition; i <= finalXPosition; i++) {
-            clusterGrid->grid[i][marginY] = marginalYCells[i - startXPosition];
+            _clusterGrid->grid[i][marginY] = marginalYCells[i - startXPosition];
         }
 
         free(marginalYCells);
     }
+
+    *clusterGrid = _clusterGrid;
 }
 
 
+void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell)) {
+    assert(clusterGrid && *clusterGrid);
+
+    kp_cluster_grid_t *_clusterGrid = *clusterGrid;
+
+    
+}
 

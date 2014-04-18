@@ -14,6 +14,7 @@
 		86174DCF18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DCE18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m */; };
 		8652176218FC6AE200586330 /* KPClusterGridTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8652176118FC6AE200586330 /* KPClusterGridTests.m */; };
 		86A71A951901A1E900C7C3F2 /* KPClusterGrid.m in Sources */ = {isa = PBXBuildFile; fileRef = 86A71A941901A1E900C7C3F2 /* KPClusterGrid.m */; };
+		86A71A961901BCF900C7C3F2 /* KPClusterGrid.m in Sources */ = {isa = PBXBuildFile; fileRef = 86A71A941901A1E900C7C3F2 /* KPClusterGrid.m */; };
 		9122C06418E77A9E00356A3D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9122C06318E77A9E00356A3D /* CoreGraphics.framework */; };
 		9122C06618E77AAA00356A3D /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9122C06518E77AAA00356A3D /* CoreLocation.framework */; };
 		9122C06718E77AB800356A3D /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 91E9B69518E7509300EFE22C /* MapKit.framework */; };
@@ -364,6 +365,7 @@
 				8605864618EC13400026144F /* KPAnnotationTests.m in Sources */,
 				91E4FC2818E773F300AC8444 /* TestAnnotation.m in Sources */,
 				91E4FC2418E773F300AC8444 /* NSArray+KP.m in Sources */,
+				86A71A961901BCF900C7C3F2 /* KPClusterGrid.m in Sources */,
 				8652176218FC6AE200586330 /* KPClusterGridTests.m in Sources */,
 				91E4FC2518E773F300AC8444 /* KPAnnotationTree.m in Sources */,
 				86174DCF18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m in Sources */,

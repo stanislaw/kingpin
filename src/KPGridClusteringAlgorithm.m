@@ -112,8 +112,8 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
         }
 
         KPClusterGridDebug(self.clusterGrid);
-        
-        KPClusterGridMergeWithOldClusterGrid(self.clusterGrid, offsetX, offsetY, ^(kp_cluster_t *clusterCell) {
+
+        KPClusterGridMergeWithOldClusterGrid(&_clusterGrid, offsetX, offsetY, ^(kp_cluster_t *clusterCell) {
             assert([clusterCell->annotation hash]);
             NSLog(@"Wow1 %lu", (unsigned long)clusterCell->annotationIndex);
             NSLog(@"Wow2 %@", clusterCell->annotation);

@@ -149,4 +149,7 @@ void KPClusterGridFree(kp_cluster_grid_t *clusterGrid);
 void KPClusterGridDebug(kp_cluster_grid_t *clusterGrid);
 
 
-void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t *clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell));
+void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell));
+
+void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell));
+
