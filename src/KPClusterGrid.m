@@ -269,33 +269,87 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
 void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell)) {
     assert(clusterGrid && *clusterGrid);
 
+    NSLog(@"KPClusterGridCopy() for offset %d %d", offsetX, offsetY);
+    
     kp_cluster_grid_t *_clusterGrid = *clusterGrid;
 
     NSUInteger gridSizeX = _clusterGrid->size.X;
     NSUInteger gridSizeY = _clusterGrid->size.Y;
 
-    if (offsetY > 0) {
-        if (offsetX > 0) {
+    if (offsetY >= 0) {
+        if (offsetX >= 0) {
             for (int j = (1 + offsetY); j < (gridSizeY + 1); j++) {
                 for (int i = (1 + offsetX); i < (gridSizeX + 1); i++) {
+                    NSLog(@"important cluster: %d", _clusterGrid->grid[i][j]->annotationIndex);
+
                     _clusterGrid->grid[i - offsetX][j - offsetY] = _clusterGrid->grid[i][j];
                 }
                 for (int i = (gridSizeX + 1 - offsetX); i < (gridSizeX + 1); i++) {
-                    //NSLog(@"to NULL %d", _clusterGrid->grid[i][j]->annotationIndex);
+                    NSLog(@"useless cluster: %d", _clusterGrid->grid[i][j]->annotationIndex);
+
                     _clusterGrid->grid[i][j - offsetY] = NULL;
                 }
             }
 
-            for (int j = (gridSizeY + 1 - offsetY); j < (gridSizeY + 1); j++) {
-                for (int i = 1; i < (gridSizeX + 1); i++) {
-                    _clusterGrid->grid[i][j] = NULL;
+        } else {
+            for (int j = (1 + offsetY); j < (gridSizeY + 1); j++) {
+                for (int i = 1; i < (1 + abs(offsetX)); i++) {
+                    NSLog(@"important cluster: %d", _clusterGrid->grid[i][j]->annotationIndex);
+
+                    _clusterGrid->grid[i - offsetX][j - offsetY] = _clusterGrid->grid[i][j];
+                }
+                for (int i = 1; i < (1 + abs(offsetX)); i++) {
+                    NSLog(@"useless cluster: %d", _clusterGrid->grid[i][j]->annotationIndex);
+
+                    _clusterGrid->grid[i][j - offsetY] = NULL;
                 }
             }
         }
-    } else if (offsetY < 0) {
 
-    } else {
+        for (int j = (gridSizeY + 1 - offsetY); j < (gridSizeY + 1); j++) {
+            for (int i = 1; i < (gridSizeX + 1); i++) {
+                _clusterGrid->grid[i][j] = NULL;
+            }
+        }
+
+    } else if (offsetY < 0) {
+        if (offsetX <= 0) {
+            for (int j = (gridSizeY + offsetY); j > 0; j--) {
+                for (int i = 1; i < (gridSizeX + 1 + offsetX); i++) {
+                    NSLog(@"important cluster: %d", _clusterGrid->grid[i][j]->annotationIndex);
+
+                    _clusterGrid->grid[i - offsetX][j - offsetY] = _clusterGrid->grid[i][j];
+                }
+
+                for (int i = 1; i < (1 + abs(offsetX)); i++) {
+                    NSLog(@"useless cluster: %d", _clusterGrid->grid[i][j]->annotationIndex);
+
+                    _clusterGrid->grid[i][j - offsetY] = NULL;
+                }
+            }
+        } else {
+            for (int j = (gridSizeY + offsetY); j > 0; j--) {
+                for (int i = 1 + offsetX; i < (gridSizeX + 1); i++) {
+                    NSLog(@"important cluster: %d", _clusterGrid->grid[i][j]->annotationIndex);
+
+                    _clusterGrid->grid[i - offsetX][j - offsetY] = _clusterGrid->grid[i][j];
+                }
+
+                for (int i = (1 + offsetX); i < (gridSizeX + 1); i++) {
+                    NSLog(@"useless cluster: %d", _clusterGrid->grid[i][j]->annotationIndex);
+
+                    _clusterGrid->grid[i][j - offsetY] = NULL;
+                }
+            }
+        }
+
+        for (int j = 1; j < (1 + abs(offsetY)); j++) {
+            for (int i = 1; i < (gridSizeX + 1); i++) {
+                _clusterGrid->grid[i][j] = NULL;
+            }
+        }
 
     }
+
 }
 
