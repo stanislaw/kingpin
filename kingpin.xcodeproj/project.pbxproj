@@ -7,11 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8605864618EC13400026144F /* KPAnnotationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8605864518EC13400026144F /* KPAnnotationTests.m */; };
 		86174DC318F8667400014C48 /* KPTreeController.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DC218F8667400014C48 /* KPTreeController.m */; };
 		86174DC718F9A08200014C48 /* KPGridClusteringAlgorithm.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DC618F9A08200014C48 /* KPGridClusteringAlgorithm.m */; };
 		86174DC818F9AB5A00014C48 /* KPGridClusteringAlgorithm.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DC618F9A08200014C48 /* KPGridClusteringAlgorithm.m */; };
-		86174DCF18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 86174DCE18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m */; };
 		8652176218FC6AE200586330 /* KPClusterGridTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8652176118FC6AE200586330 /* KPClusterGridTests.m */; };
 		86A71A951901A1E900C7C3F2 /* KPClusterGrid.m in Sources */ = {isa = PBXBuildFile; fileRef = 86A71A941901A1E900C7C3F2 /* KPClusterGrid.m */; };
 		86A71A961901BCF900C7C3F2 /* KPClusterGrid.m in Sources */ = {isa = PBXBuildFile; fileRef = 86A71A941901A1E900C7C3F2 /* KPClusterGrid.m */; };
@@ -22,7 +20,6 @@
 		9189259C18E7732900812296 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93BBC0511645A2B2004BC920 /* Foundation.framework */; };
 		9189259D18E7732900812296 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93BBC04F1645A2B2004BC920 /* UIKit.framework */; };
 		918925A318E7732900812296 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 918925A118E7732900812296 /* InfoPlist.strings */; };
-		918925A518E7732900812296 /* KPAnnotationTreeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 918925A418E7732900812296 /* KPAnnotationTreeTests.m */; };
 		91E4FC2418E773F300AC8444 /* NSArray+KP.m in Sources */ = {isa = PBXBuildFile; fileRef = 9346910616A8F1C200DE59FA /* NSArray+KP.m */; };
 		91E4FC2518E773F300AC8444 /* KPAnnotationTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 93BBC0421645A1F8004BC920 /* KPAnnotationTree.m */; };
 		91E4FC2618E773F300AC8444 /* KPAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 93BBC0461645A1F8004BC920 /* KPAnnotation.m */; };
@@ -361,14 +358,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				91E4FC2718E773F300AC8444 /* KPTreeControllerRework.m in Sources */,
-				918925A518E7732900812296 /* KPAnnotationTreeTests.m in Sources */,
-				8605864618EC13400026144F /* KPAnnotationTests.m in Sources */,
 				91E4FC2818E773F300AC8444 /* TestAnnotation.m in Sources */,
 				91E4FC2418E773F300AC8444 /* NSArray+KP.m in Sources */,
 				86A71A961901BCF900C7C3F2 /* KPClusterGrid.m in Sources */,
 				8652176218FC6AE200586330 /* KPClusterGridTests.m in Sources */,
 				91E4FC2518E773F300AC8444 /* KPAnnotationTree.m in Sources */,
-				86174DCF18F9D25100014C48 /* KPGridClusteringAlgorithmTests.m in Sources */,
 				86174DC818F9AB5A00014C48 /* KPGridClusteringAlgorithm.m in Sources */,
 				91E4FC2618E773F300AC8444 /* KPAnnotation.m in Sources */,
 			);
