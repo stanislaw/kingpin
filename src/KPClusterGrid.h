@@ -93,6 +93,7 @@ typedef enum : unsigned char {
     KPClusterGridCellSingle = 1,
     KPClusterGridCellMerger = 2,
     KPClusterGridCellMerged = 3,
+    KPClusterGridCellDoNotRecluster = 4,
 } KPClusterGridCellType;
 
 
@@ -148,6 +149,7 @@ void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NS
 void KPClusterGridFree(kp_cluster_grid_t *clusterGrid);
 void KPClusterGridDebug(kp_cluster_grid_t *clusterGrid);
 
+void KPClusterDebug(kp_cluster_t *cluster);
 
 void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *clusterCell));
 

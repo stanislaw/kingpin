@@ -143,9 +143,15 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
             if (panning && MKMapRectContainsRect(self.lastClusteredGridRect, cellRect)) {
                 if (self.clusterGrid->grid[i][j]) {
-                    assert(self.clusterGrid->grid[i][j]->clusterType == KPClusterGridCellSingle || self.clusterGrid->grid[i][j]->clusterType == KPClusterGridCellMerged);
+                    KPClusterDebug(self.clusterGrid->grid[i][j]);
+                    
+//                    assert(self.clusterGrid->grid[i][j]->clusterType == KPClusterGridCellSingle);
+//                    assert(self.clusterGrid->grid[i][j]->clusterType != KPClusterGridCellMerged);
+//                    assert(self.clusterGrid->grid[i][j]->clusterType == KPClusterGridCellDoNotRecluster);
 
-                    [_oldClusters addObject:self.clusterGrid->grid[i][j]->annotation];
+                    if (self.clusterGrid->grid[i][j]->clusterType != KPClusterGridCellDoNotRecluster) {
+                        //[_oldClusters addObject:self.clusterGrid->grid[i][j]->annotation];
+                    }
                 } else {
                     self.clusterGrid->grid[i][j] = NULL;
 
@@ -287,7 +293,7 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
             currentCellCluster = clusterGrid->grid[i][j];
 
-            if (currentCellCluster == NULL || currentCellCluster->clusterType == KPClusterGridCellMerged) {
+            if (currentCellCluster == NULL || currentCellCluster->clusterType == KPClusterGridCellMerged || currentCellCluster->clusterType == KPClusterGridCellDoNotRecluster) {
                 continue;
             }
 
