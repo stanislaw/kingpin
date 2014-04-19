@@ -178,15 +178,15 @@
     void (^fillClusterGrid)(void) = ^(void) {
         NSUInteger clusterIndex = 0;
 
-        for (int j = 1; j < (gridSizeY + 1); j++) {
-            for (int i = 1; i < (gridSizeX + 1); i++) {
+        for (int col = 1; col < (gridSizeY + 1); col++) {
+            for (int row = 1; row < (gridSizeX + 1); row++) {
                 kp_cluster_t *cluster = clusterStorage + clusterIndex;
                 cluster->annotationIndex = clusterIndex + 1;
                 cluster->clusterType = KPClusterGridCellSingle;
                 cluster->annotation = nil;
                 cluster->distributionQuadrant = 0;
 
-                clusterGrid->grid[i][j] = cluster;
+                clusterGrid->grid[col][row] = cluster;
 
                 clusterIndex++;
             }
@@ -212,19 +212,24 @@
         XCTAssertTrue(clusterGrid->grid[5][5] == NULL);
 
         XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 5);
-        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 6);
-        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 7);
-        XCTAssertTrue(clusterGrid->grid[4][1]->annotationIndex == 8);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 6);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 8);
 
-        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 9);
         XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 10);
-        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 11);
-        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 12);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 12);
 
-        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 13);
-        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 14);
+        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 13);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 14);
         XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 15);
-        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 16);
+        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 16);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
 
         validateNULLMargin(clusterGrid);
 
@@ -246,23 +251,23 @@
         XCTAssertTrue(clusterGrid->grid[5][5] == NULL);
 
         XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 2);
-        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 3);
-        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 4);
-        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 3);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 4);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
 
-        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 6);
+        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 6);
         XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 7);
-        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 8);
-        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 8);
+        XCTAssertTrue(clusterGrid->grid[2][4] == NULL);
 
-        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 10);
-        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 11);
         XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 12);
-        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
 
-        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 14);
-        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 15);
-        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 16);
+        XCTAssertTrue(clusterGrid->grid[4][1]->annotationIndex == 14);
+        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 15);
+        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 16);
         XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
 
         validateNULLMargin(clusterGrid);
@@ -284,8 +289,8 @@
         XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
 
         XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 6);
-        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 7);
-        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 10);
         XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 11);
 
         validateNULLMargin(clusterGrid);
@@ -307,8 +312,8 @@
         XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
 
         XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 11);
-        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 12);
-        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 15);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 12);
+        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 15);
         XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 16);
 
         validateNULLMargin(clusterGrid);
@@ -350,6 +355,9 @@
         XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
 
         XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 8);
+        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
 
         validateNULLMargin(clusterGrid);
 
@@ -367,9 +375,12 @@
 
         KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
 
-//        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
-//
-//        XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 12);
 
         validateNULLMargin(clusterGrid);
 
@@ -387,9 +398,12 @@
 
         KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
 
-        //        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
-        //
-        //        XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 13);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 14);
 
         validateNULLMargin(clusterGrid);
 
@@ -412,10 +426,9 @@
 
         XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
 
-//        XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 6);
-//        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 7);
-//        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 10);
-//        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 2);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 3);
 
         validateNULLMargin(clusterGrid);
 
@@ -435,10 +448,10 @@
 
         XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
 
-        //        XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 6);
-        //        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 7);
-        //        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 10);
-        //        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 2);
+        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 5);
+        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 6);
 
         validateNULLMargin(clusterGrid);
 
@@ -460,10 +473,10 @@
 
         XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
 
-        //        XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 6);
-        //        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 7);
-        //        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 10);
-        //        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 3);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 4);
 
         validateNULLMargin(clusterGrid);
 
@@ -483,11 +496,6 @@
         KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
 
         XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 9);
-        XCTAssertTrue(clusterGrid->grid[4][1]->annotationIndex == 10);
-        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 13);
-        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 14);
 
         validateNULLMargin(clusterGrid);
 
@@ -509,13 +517,36 @@
 
         XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
 
-//        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 9);
-//        XCTAssertTrue(clusterGrid->grid[4][1]->annotationIndex == 10);
-//        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 13);
-//        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 14);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 2);
+
 
         validateNULLMargin(clusterGrid);
 
+        KPClusterGridDebug(clusterGrid);
+    }
+
+
+    // +2, 0
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = 2;
+        NSUInteger offsetY = 0;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 3);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 4);
+        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 8);
+
+        validateNULLMargin(clusterGrid);
+        
         KPClusterGridDebug(clusterGrid);
     }
 

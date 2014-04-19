@@ -130,30 +130,30 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
     NSUInteger annotationCounter = 0;
     NSUInteger counter = 0;
-    for(int j = 1; j < (gridSizeY + 1); j++){
-        for(int i = 1; i < (gridSizeX + 1); i++) {
+    for(int col = 1; col < (gridSizeY + 1); col++){
+        for(int row = 1; row < (gridSizeX + 1); row++) {
             counter++;
 
-            int x = mapRect.origin.x + (i - 1) * cellSize.width;
-            int y = mapRect.origin.y + (j - 1) * cellSize.height;
+            int x = mapRect.origin.x + (row - 1) * cellSize.width;
+            int y = mapRect.origin.y + (col - 1) * cellSize.height;
 
             MKMapRect cellRect = MKMapRectMake(x, y, cellSize.width, cellSize.height);
 
             MKMapViewDrawMapRect(self.debuggingMapView, cellRect);
 
             if (panning && MKMapRectContainsRect(self.lastClusteredGridRect, cellRect)) {
-                if (self.clusterGrid->grid[i][j]) {
-                    KPClusterDebug(self.clusterGrid->grid[i][j]);
+                if (self.clusterGrid->grid[col][row]) {
+                    KPClusterDebug(self.clusterGrid->grid[col][row]);
                     
 //                    assert(self.clusterGrid->grid[i][j]->clusterType == KPClusterGridCellSingle);
 //                    assert(self.clusterGrid->grid[i][j]->clusterType != KPClusterGridCellMerged);
 //                    assert(self.clusterGrid->grid[i][j]->clusterType == KPClusterGridCellDoNotRecluster);
 
-                    if (self.clusterGrid->grid[i][j]->clusterType != KPClusterGridCellDoNotRecluster) {
+                    if (self.clusterGrid->grid[col][row]->clusterType != KPClusterGridCellDoNotRecluster) {
                         //[_oldClusters addObject:self.clusterGrid->grid[i][j]->annotation];
                     }
                 } else {
-                    self.clusterGrid->grid[i][j] = NULL;
+                    self.clusterGrid->grid[col][row] = NULL;
 
                     continue;
                 }
@@ -175,12 +175,12 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
                 
                 cluster->distributionQuadrant = KPClusterDistributionQuadrantForPointInsideMapRect(cellRect, MKMapPointForCoordinate(annotation.coordinate));
 
-                self.clusterGrid->grid[i][j] = cluster;
+                self.clusterGrid->grid[col][row] = cluster;
 
                 clusterIndex++;
                 annotationCounter += newAnnotations.count;
             } else {
-                self.clusterGrid->grid[i][j] = NULL;
+                self.clusterGrid->grid[col][row] = NULL;
             }
         }
     }
@@ -191,9 +191,9 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
     assert(counter == (gridSizeX * gridSizeY));
 
     /* Validation (Debug, remove later) */
-    for(int i = 0; i < (gridSizeX + 2); i++){
-        for(int j = 0; j < (gridSizeY + 2); j++){
-            kp_cluster_t *cluster = self.clusterGrid->grid[i][j];
+    for(int col = 0; col < (gridSizeY + 2); col++) {
+        for(int row = 0; row < (gridSizeX + 2); row++) {
+            kp_cluster_t *cluster = self.clusterGrid->grid[col][row];
 
             if (cluster) {
                 assert(cluster->clusterType == KPClusterGridCellSingle);
@@ -272,8 +272,11 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
     };
 
 
-    int currentClusterCoordinate[2];
-    int adjacentClusterCoordinate[2];
+    struct {
+        int row; // this order "row then col"
+        int col; // is important
+    } currentClusterCoordinate, adjacentClusterCoordinate;
+
 
     kp_cluster_t *currentCellCluster;
     kp_cluster_t *adjacentCellCluster;
@@ -281,17 +284,17 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
     kp_cluster_merge_result_t mergeResult;
 
 
-    for (int16_t j = 1; j < (gridSizeY + 2); j++) {
-        for (int16_t i = 1; i < (gridSizeX + 2); i++) {
-            loop_with_explicit_i_and_j:
+    for (int16_t col = 1; col < (gridSizeY + 2); col++) {
+        for (int16_t row = 1; row < (gridSizeX + 2); row++) {
+            loop_with_explicit_col_and_row:
 
-            assert(i > 0);
-            assert(j > 0);
+            assert(col > 0);
+            assert(row > 0);
 
-            currentClusterCoordinate[0] = i;
-            currentClusterCoordinate[1] = j;
+            currentClusterCoordinate.col = col;
+            currentClusterCoordinate.row = row;
 
-            currentCellCluster = clusterGrid->grid[i][j];
+            currentCellCluster = clusterGrid->grid[col][row];
 
             if (currentCellCluster == NULL || currentCellCluster->clusterType == KPClusterGridCellMerged || currentCellCluster->clusterType == KPClusterGridCellDoNotRecluster) {
                 continue;
@@ -302,10 +305,10 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
             for (int adjacentClustersPositionIndex = 0; adjacentClustersPositionIndex < 3; adjacentClustersPositionIndex++) {
                 int adjacentClusterPosition = KPClusterAdjacentClustersTable[lookupIndexForCurrentCellQuadrant][adjacentClustersPositionIndex];
 
-                adjacentClusterCoordinate[0] = currentClusterCoordinate[0] + KPAdjacentClustersCoordinateDeltas[adjacentClusterPosition][0];
-                adjacentClusterCoordinate[1] = currentClusterCoordinate[1] + KPAdjacentClustersCoordinateDeltas[adjacentClusterPosition][1];
+                adjacentClusterCoordinate.col = currentClusterCoordinate.col + KPAdjacentClustersCoordinateDeltas[adjacentClusterPosition][0];
+                adjacentClusterCoordinate.row = currentClusterCoordinate.row + KPAdjacentClustersCoordinateDeltas[adjacentClusterPosition][1];
 
-                adjacentCellCluster = clusterGrid->grid[adjacentClusterCoordinate[0]][adjacentClusterCoordinate[1]];
+                adjacentCellCluster = clusterGrid->grid[adjacentClusterCoordinate.col][adjacentClusterCoordinate.row];
 
                 // In third condition we use bitwise & to check if adjacent cell has distribution of its cluster point which is _complementary_ to a one of the current cell. If it is so, than it worth to make a merge check.
                 if (adjacentCellCluster != NULL && adjacentCellCluster->clusterType != KPClusterGridCellMerged && (KPClusterConformityTable[adjacentClusterPosition] & adjacentCellCluster->distributionQuadrant) != 0) {
@@ -314,12 +317,12 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
                     // The case when other cluster did adsorb current cluster into itself. This means that we must not continue looking for adjacent clusters because we don't have a current cell now.
                     if (mergeResult == KPClusterMergeResultOther) {
                         // If this other cluster lies upstream (behind current i,j cell), we revert back to its [i,j] coordinate and continue looping
-                        if (*(int32_t *)currentClusterCoordinate > *(int32_t *)adjacentClusterCoordinate) {
+                        if (*(int32_t *)(&currentClusterCoordinate) > *(int32_t *)(&adjacentClusterCoordinate)) {
 
-                            i = adjacentClusterCoordinate[0];
-                            j = adjacentClusterCoordinate[1];
+                            col = adjacentClusterCoordinate.col;
+                            row = adjacentClusterCoordinate.row;
 
-                            goto loop_with_explicit_i_and_j;
+                            goto loop_with_explicit_col_and_row;
                         }
                         
                         break; // This breaks from checking adjacent clusters

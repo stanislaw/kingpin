@@ -14,11 +14,11 @@
 
 /*
  Cell of cluster grid
- --------
+  --------
  |  2   1 |
  |        |
  |  3   4 |
- --------
+  --------
  */
 typedef enum {
     KPClusterDistributionQuadrantOne   = 1 << 0, // Cluster's point is distributed in North East direction from cell's center i.e. cluster.x > cellCenter.x && cluster.y < cellCenter.y (given MKMapPoints: 0, 0 is on north-west...)
@@ -78,13 +78,13 @@ static const int KPClusterAdjacentClustersTable[4][3] = {
 
 
 static const int KPAdjacentClustersCoordinateDeltas[8][2] = {
-    { 1,  0},    // 0 means that to access coordinate of cell #0 (to the right from current i, j) we must add the following: i + 1, j + 0
-    { 1, -1},    // 1
-    { 0, -1},    // 2
+    { 0,  1},    // 0 means that to access coordinate of cell #0 (to the right from current i, j) we must add the following: col + 0, row + 1
+    {-1,  1},    // 1
+    {-1,  0},    // 2
     {-1, -1},    // 3
-    {-1,  0},    // 4
-    {-1,  1},    // 5
-    { 0,  1},    // 6
+    { 0, -1},    // 4
+    { 1, -1},    // 5
+    { 1,  0},    // 6
     { 1,  1}     // 7
 };
 
@@ -129,7 +129,6 @@ typedef struct {
     kp_cluster_t ***grid;
 
     kp_cluster_t *storage;
-    int freeidx;
 
     struct {
         int X;

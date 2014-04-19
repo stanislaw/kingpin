@@ -12,6 +12,8 @@
 void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NSUInteger gridSizeY) {
     assert(clusterGrid);
 
+    NSLog(@"KPClusterGridInit(%lu, %lu)", (unsigned long)gridSizeX, (unsigned long)gridSizeY);
+
     kp_cluster_grid_t *_clusterGrid;
 
     if (*clusterGrid) {
@@ -23,25 +25,24 @@ void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NS
     if (_clusterGrid->size.X < gridSizeX || _clusterGrid->size.Y < gridSizeY) {
         _clusterGrid->storage = realloc(_clusterGrid->storage, (gridSizeX * gridSizeY) * sizeof(kp_cluster_t));
 
-        _clusterGrid->grid = realloc(_clusterGrid->grid, (gridSizeX + 2) * sizeof(kp_cluster_t **));
+        _clusterGrid->grid    = realloc(_clusterGrid->grid, (gridSizeY + 2) * sizeof(kp_cluster_t **));
 
         if (_clusterGrid->grid == NULL || _clusterGrid->storage == NULL) {
             exit(1);
         }
 
 
-        BOOL gridEmpty = (_clusterGrid->size.X == 0);
-        size_t positionOfFirstNewCell = _clusterGrid->size.X + 2 * (gridEmpty == NO);
-        size_t numberOfNewCells = (gridSizeX - _clusterGrid->size.X) + 2 * gridEmpty;
+        BOOL gridEmpty = (_clusterGrid->size.X == 0 && _clusterGrid->size.Y == 0);
 
+        size_t indexOfFirstNewRow = gridEmpty ? 0               : (_clusterGrid->size.Y + 2);
+        size_t numberOfNewRows    = gridEmpty ? (gridSizeY + 2) : (gridSizeY - _clusterGrid->size.Y);
 
-        memset(_clusterGrid->grid + positionOfFirstNewCell, 0, numberOfNewCells * sizeof(kp_cluster_t **));
+        memset(_clusterGrid->grid + indexOfFirstNewRow, 0, numberOfNewRows * sizeof(kp_cluster_t **));
 
+        for (int j = 0; j < (gridSizeY + 2); j++) {
+            _clusterGrid->grid[j] = realloc(_clusterGrid->grid[j], (gridSizeX + 2) * sizeof(kp_cluster_t *));
 
-        for (int i = 0; i < (gridSizeX + 2); i++) {
-            _clusterGrid->grid[i] = realloc(_clusterGrid->grid[i], (gridSizeY + 2) * sizeof(kp_cluster_t *));
-
-            if (_clusterGrid->grid[i] == NULL) {
+            if (_clusterGrid->grid[j] == NULL) {
                 exit(1);
             }
         }
@@ -50,14 +51,14 @@ void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NS
         _clusterGrid->size.Y = gridSizeY;
     }
 
-    for (int i = 0; i < (gridSizeX + 2); i++) {
-        memset(_clusterGrid->grid[i], 0, (gridSizeY + 2) * sizeof(kp_cluster_t *));
+    for (int j = 0; j < (gridSizeY + 2); j++) {
+        memset(_clusterGrid->grid[j], 0, (gridSizeX + 2) * sizeof(kp_cluster_t *));
     }
 
     /* Validation (Debug, remove later) */
-    for (int i = 0; i < (gridSizeX + 2); i++) {
-        for (int j = 0; j < (gridSizeY + 2); j++) {
-            assert(_clusterGrid->grid[i][j] == NULL);
+    for (int col = 0; col < (gridSizeY + 2); col++) {
+        for (int row = 0; row < (gridSizeX + 2); row++) {
+            assert(_clusterGrid->grid[col][row] == NULL);
         }
     }
 
@@ -66,8 +67,8 @@ void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NS
 
 
 void KPClusterGridFree(kp_cluster_grid_t *clusterGrid) {
-    for (int i = 0; i < (clusterGrid->size.X + 2); i++) {
-        free(clusterGrid->grid[i]);
+    for (int j = 0; j < (clusterGrid->size.Y + 2); j++) {
+        free(clusterGrid->grid[j]);
     }
 
     free(clusterGrid->grid);
@@ -75,10 +76,12 @@ void KPClusterGridFree(kp_cluster_grid_t *clusterGrid) {
 }
 
 void KPClusterGridDebug(kp_cluster_grid_t *clusterGrid) {
-    for (int j = 0; j < (clusterGrid->size.Y + 2); j++) {
-        for (int i = 0; i < (clusterGrid->size.X + 2); i++) {
-            if (clusterGrid->grid[i][j]) {
-                printf("[%2d ]  ", clusterGrid->grid[i][j]->annotationIndex);
+    for (int col = 0; col < (clusterGrid->size.Y + 2); col++) {
+        for (int row = 0; row < (clusterGrid->size.X + 2); row++) {
+            kp_cluster_t *cluster = clusterGrid->grid[col][row];
+
+            if (cluster) {
+                printf("[%2d ]  ", cluster->annotationIndex);
             } else {
                 printf(" NULL  ");
             }
@@ -110,21 +113,21 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
     int numberOfMarginalXCellsToCopyAlongAxisY = (int)(gridSizeY - abs(offsetY));
     int numberOfMarginalYCellsToCopyAlongAxisX = (int)(gridSizeX - abs(offsetX));
 
-    int marginX;
-    int startYPosition;
-    int finalYPosition;
+    int indexOfEdgeRow;
+    int indexOfFirstColumn;
+    int indexOfLastColumn;
 
     if (offsetX != 0) {
-        marginX = (offsetX > 0) ? (int)gridSizeX : 1;
+        indexOfEdgeRow = (offsetX > 0) ? (int)gridSizeX : 1;
 
-        startYPosition = (offsetY >= 0) ? (1 + offsetY)  : 1;
-        finalYPosition = (offsetY >= 0) ? (int)gridSizeY : ((int)gridSizeY + offsetY);
+        indexOfFirstColumn = (offsetY >= 0) ? (1 + offsetY)  : 1;
+        indexOfLastColumn  = (offsetY >= 0) ? (int)gridSizeY : ((int)gridSizeY + offsetY);
 
         KPClusterDistributionQuadrant acceptableDistributionQuadrant;
         kp_cluster_t *cluster = NULL;
 
         /* first */
-        cluster = _clusterGrid->grid[marginX][startYPosition];
+        cluster = _clusterGrid->grid[indexOfFirstColumn][indexOfEdgeRow];
 
         if (cluster != NULL) {
             if (offsetY >= 0) {
@@ -150,8 +153,8 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
 
         /* non-edge */
         if (numberOfMarginalXCellsToCopyAlongAxisY > 2) {
-            for (int j = (startYPosition + 1); j <= (finalYPosition - 1); j++) {
-                cluster = _clusterGrid->grid[marginX][j];
+            for (int j = (indexOfFirstColumn + 1); j <= (indexOfLastColumn - 1); j++) {
+                cluster = _clusterGrid->grid[j][indexOfEdgeRow];
 
                 if (cluster != NULL) {
                     acceptableDistributionQuadrant = (offsetX > 0) ? (KPClusterDistributionQuadrantFour | KPClusterDistributionQuadrantOne) : KPClusterDistributionQuadrantTwo | KPClusterDistributionQuadrantThree;
@@ -169,7 +172,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
 
         /* last */
         if (numberOfMarginalXCellsToCopyAlongAxisY > 1) {
-            cluster = _clusterGrid->grid[marginX][finalYPosition];
+            cluster = _clusterGrid->grid[indexOfLastColumn][indexOfEdgeRow];
 
             if (cluster != NULL) {
                 if (offsetY <= 0) {
@@ -199,22 +202,22 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
     int startXPosition;
     int finalXPosition;
 
-    NSUInteger marginalYCellsIndex = 0;
+    //NSUInteger marginalYCellsIndex = 0;
     if (offsetY != 0) {
         marginY = (offsetY > 0) ? (int)gridSizeY : 1;
 
         startXPosition = (offsetX >= 0) ? (1 + offsetX)       : 2;
         finalXPosition = (offsetX >= 0) ? ((int)gridSizeX - 1) : ((int)gridSizeX + offsetX);
 
-        for (int i = startXPosition; i <= finalXPosition; i++) {
-            kp_cluster_t *cluster = _clusterGrid->grid[i][marginY];
-
-            marginalYCellsIndex++;
-
-            if (cluster && (cluster->clusterType == KPClusterGridCellSingle)) {
-//                marginalClusterCellBlock(cluster);
-            }
-        }
+//        for (int i = startXPosition; i <= finalXPosition; i++) {
+//            kp_cluster_t *cluster = _clusterGrid->grid[i][marginY];
+//
+//            marginalYCellsIndex++;
+//
+//            if (cluster && (cluster->clusterType == KPClusterGridCellSingle)) {
+////                marginalClusterCellBlock(cluster);
+//            }
+//        }
     }
 
     KPClusterGridCopy(&_clusterGrid, offsetX, offsetY, nil);
@@ -240,25 +243,21 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
 
     if (offsetY > 0) {
         if (offsetX >= 0) {
-            for (int j = (1 + offsetY); j < (gridSizeY + 1); j++) {
-                for (int i = (1 + offsetX); i < (gridSizeX + 1); i++) {
-                    cluster = _clusterGrid->grid[i][j];
+            for (int col = (1 + offsetY); col < (gridSizeY + 1); col++) {
+                for (int row = (1 + offsetX); row < (gridSizeX + 1); row++) {
+                    cluster = _clusterGrid->grid[col][row];
 
-                    if (cluster) {
-                        NSLog(@"important cluster, i, j: %d (%d, %d)", cluster->annotationIndex, i, j);
-                    }
-
-                    _clusterGrid->grid[i - offsetX][j - offsetY] = cluster;
+                    _clusterGrid->grid[col - offsetY][row - offsetX] = cluster;
                 }
 
-                for (int i = (gridSizeX + 1 - offsetX); i < (gridSizeX + 1); i++) {
-                    _clusterGrid->grid[i][j - offsetY] = NULL;
+                for (int row = (gridSizeX + 1 - offsetX); row < (gridSizeX + 1); row++) {
+                    _clusterGrid->grid[col - offsetY][row] = NULL;
                 }
             }
 
-            for (int j = (gridSizeY + 1 - offsetY); j < (gridSizeY + 1); j++) {
-                for (int i = 1; i < (gridSizeX + 1); i++) {
-                    _clusterGrid->grid[i][j] = NULL;
+            for (int col = (gridSizeY + 1 - offsetY); col < (gridSizeY + 1); col++) {
+                for (int row = 1; row < (gridSizeX + 1); row++) {
+                    _clusterGrid->grid[col][row] = NULL;
                 }
             }
         }
@@ -270,99 +269,69 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
             for (int j = 0; j < numberOfYElements; j++) {
                 for (int i = 0; i < numberOfXElements; i++) {
 
-                    cluster = _clusterGrid->grid[1 + i][1 + offsetY + j];
+                    cluster = _clusterGrid->grid[1 + offsetY + j][1 + i];
 
-                    if (cluster) {
-                        NSLog(@"important cluster, i, j: %d (%d, %d)", cluster->annotationIndex, i, j);
-                    }
-
-                    _clusterGrid->grid[1 + i + abs(offsetX)][1 + j] = cluster;
+                    _clusterGrid->grid[1 + j][1 + i + abs(offsetX)] = cluster;
                 }
                 for (int i = 0; i < abs(offsetX); i++) {
-                    _clusterGrid->grid[1 + i][1 + j] = NULL;
+                    _clusterGrid->grid[1 + j][1 + i] = NULL;
                 }
             }
 
             for (int j = (gridSizeY + 1 - offsetY); j < (gridSizeY + 1); j++) {
                 for (int i = 1; i < (gridSizeX + 1); i++) {
-                    _clusterGrid->grid[i][j] = NULL;
+                    _clusterGrid->grid[j][i] = NULL;
                 }
             }
         }
 
     } else if (offsetY < 0) {
         if (offsetX <= 0) {
-            for (int j = (gridSizeY + offsetY); j > 0; j--) {
-                for (int i = 1; i < (gridSizeX + 1 + offsetX); i++) {
-                    cluster = _clusterGrid->grid[i][j];
+            for (int col = (gridSizeY + offsetY); col > 0; col--) {
+                for (int row = 1; row < (gridSizeX + 1 + offsetX); row++) {
+                    cluster = _clusterGrid->grid[col][row];
 
-                    if (cluster) {
-                        NSLog(@"important cluster, i, j: %d (%d, %d)", cluster->annotationIndex, i, j);
-                    }
-
-                    _clusterGrid->grid[i - offsetX][j - offsetY] = cluster;
+                    _clusterGrid->grid[col - offsetY][row - offsetX] = cluster;
                 }
 
-                for (int i = 1; i < (1 + abs(offsetX)); i++) {
-                    _clusterGrid->grid[i][j - offsetY] = NULL;
+                for (int row = 1; row < (1 + abs(offsetX)); row++) {
+                    _clusterGrid->grid[col - offsetY][row] = NULL;
                 }
             }
         } else {
-            for (int j = (gridSizeY + offsetY); j > 0; j--) {
-                for (int i = 1 + offsetX; i < (gridSizeX + 1); i++) {
-                    cluster = _clusterGrid->grid[i][j];
+            for (int col = (gridSizeY + offsetY); col > 0; col--) {
+                for (int row = 1 + offsetX; row < (gridSizeX + 1); row++) {
+                    cluster = _clusterGrid->grid[col][row];
 
-                    if (cluster) {
-                        NSLog(@"important cluster, i, j: %d (%d, %d)", cluster->annotationIndex, i, j);
-                    }
-
-                    _clusterGrid->grid[i - offsetX][j - offsetY] = _clusterGrid->grid[i][j];
+                    _clusterGrid->grid[col - offsetY][row - offsetX] = _clusterGrid->grid[col][row];
                 }
 
-                for (int i = (gridSizeX - offsetX + 1); i < (gridSizeX + 1); i++) {
-                    _clusterGrid->grid[i][j - offsetY] = NULL;
+                for (int row = (gridSizeX - offsetX + 1); row < (gridSizeX + 1); row++) {
+                    _clusterGrid->grid[col - offsetY][row] = NULL;
                 }
             }
         }
 
-        for (int j = 1; j < (1 + abs(offsetY)); j++) {
-            for (int i = 1; i < (gridSizeX + 1); i++) {
-                _clusterGrid->grid[i][j] = NULL;
+        for (int col = 1; col < (1 + abs(offsetY)); col++) {
+            for (int row = 1; row < (gridSizeX + 1); row++) {
+                _clusterGrid->grid[col][row] = NULL;
             }
         }
 
     } else {
         if (offsetX > 0) {
-            for (int j = 1; j < (gridSizeY + 1); j++) {
-                for (int i = (1 + offsetX); i < (gridSizeX + 1); i++) {
-                    cluster = _clusterGrid->grid[i][j];
+            for (int col = 1; col < (gridSizeY + 1); col++) {
+                memmove(_clusterGrid->grid[col] + 1, _clusterGrid->grid[col] + 1 + offsetX, (gridSizeX - offsetX) * sizeof(kp_cluster_t *));
 
-                    if (cluster) {
-                        NSLog(@"important cluster, i, j: %d (%d, %d)", cluster->annotationIndex, i, j);
-                    }
-
-                    _clusterGrid->grid[i - offsetX][j] = cluster;
-                }
-
-                for (int i = (gridSizeX + 1 - offsetX); i < (gridSizeX + 1); i++) {
-                    _clusterGrid->grid[i][j] = NULL;
-                }
+                memset(_clusterGrid->grid[col] + gridSizeX + 1 - offsetX, 0, offsetX * sizeof(kp_cluster_t *));
             }
         } else {
-            for (int j = 1; j < (gridSizeY + 1); j++) {
-                for (int i = (gridSizeX - (abs(offsetX))); i > 0; i--) {
-                    cluster = _clusterGrid->grid[i][j];
+            offsetX = abs(offsetX);
 
-                    if (cluster) {
-                        NSLog(@"important cluster, i, j: %d (%d, %d)", cluster->annotationIndex, i, j);
-                    }
+            for (int col = 1; col < (gridSizeY + 1); col++) {
+                memmove(_clusterGrid->grid[col] + 1 + offsetX, _clusterGrid->grid[col] + 1, (gridSizeX - offsetX) * sizeof(kp_cluster_t *));
 
-                    _clusterGrid->grid[i + abs(offsetX)][j] = cluster;
-                }
-
-                for (int i = 1; i < (abs(offsetX) + 1); i++) {
-                    _clusterGrid->grid[i][j] = NULL;
-                }
+                memset(_clusterGrid->grid[col] + 1, 0, offsetX * sizeof(kp_cluster_t *));
             }
         }
     }
