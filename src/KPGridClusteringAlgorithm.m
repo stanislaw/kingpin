@@ -90,7 +90,7 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
     NSLog(@"%ld %ld", sizeof(kp_cluster_t), sizeof(kp_cluster_t *));
 
-    if ((self.clusterGrid == NULL) || panning == NO) {
+    if ((self.clusterGrid == NULL) || panning == NO || (MKMapRectIntersectsRect(mapRect, self.lastClusteredGridRect) == NO)) {
         KPClusterGridInit(&_clusterGrid, gridSizeX, gridSizeY);
     } else {
         assert(self.clusterGrid->size.X == gridSizeX);
@@ -103,21 +103,24 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
         NSInteger offsetX = (NSInteger)round((mapRect.origin.x - self.lastClusteredGridRect.origin.x) / cellSize.width);
         NSInteger offsetY = (NSInteger)round((mapRect.origin.y - self.lastClusteredGridRect.origin.y) / cellSize.height);
 
-        NSLog(@"Offsets: (%ld, %ld)", (long)offsetX, (long)offsetY);
-
         if (offsetX == 0 && offsetY == 0) {
             NSLog(@"Offset is zero. Nothing to do...");
 
             return;
+        } else {
+            NSLog(@"Offsets: (%ld, %ld)", (long)offsetX, (long)offsetY);
         }
 
         KPClusterGridDebug(self.clusterGrid);
 
         KPClusterGridMergeWithOldClusterGrid(&_clusterGrid, offsetX, offsetY, ^(kp_cluster_t *clusterCell) {
-            assert([clusterCell->annotation hash]);
-            NSLog(@"Wow1 %lu", (unsigned long)clusterCell->annotationIndex);
-            NSLog(@"Wow2 %@", clusterCell->annotation);
-            NSLog(@"Wow3 %d", clusterCell->clusterType);
+            NSLog(@"Handler:");
+            KPClusterDebug(clusterCell);
+
+            NSLog(@"%@", ([clusterCell->annotation class]));
+            assert([clusterCell->annotation isKindOfClass:[KPAnnotation class]]);
+
+            [_oldClusters addObject:clusterCell->annotation];
         });
 
         KPClusterGridDebug(self.clusterGrid);
@@ -142,15 +145,14 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
             MKMapViewDrawMapRect(self.debuggingMapView, cellRect);
 
             if (panning && MKMapRectContainsRect(self.lastClusteredGridRect, cellRect)) {
-                if (self.clusterGrid->grid[col][row]) {
-                    KPClusterDebug(self.clusterGrid->grid[col][row]);
-                    
-//                    assert(self.clusterGrid->grid[i][j]->clusterType == KPClusterGridCellSingle);
-//                    assert(self.clusterGrid->grid[i][j]->clusterType != KPClusterGridCellMerged);
-//                    assert(self.clusterGrid->grid[i][j]->clusterType == KPClusterGridCellDoNotRecluster);
+                kp_cluster_t *cluster = self.clusterGrid->grid[col][row];
 
-                    if (self.clusterGrid->grid[col][row]->clusterType != KPClusterGridCellDoNotRecluster) {
-                        //[_oldClusters addObject:self.clusterGrid->grid[i][j]->annotation];
+                if (cluster) {
+                    if (cluster->clusterType == KPClusterGridCellDoNotRecluster) {
+                        cluster->annotationIndex = clusterIndex;
+                        clusterIndex++;
+
+                        continue;
                     }
                 } else {
                     self.clusterGrid->grid[col][row] = NULL;
@@ -166,7 +168,7 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
                 KPAnnotation *annotation = [[KPAnnotation alloc] initWithAnnotations:newAnnotations];
                 [_newClusters addObject:annotation];
 
-                kp_cluster_t *cluster = self.clusterGrid->storage + clusterIndex;
+                kp_cluster_t *cluster = KPClusterStorageCluster(self.clusterGrid->storage, col, row);
 
                 cluster->mapRect = cellRect;
                 cluster->annotationIndex = clusterIndex;
@@ -196,7 +198,8 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
             kp_cluster_t *cluster = self.clusterGrid->grid[col][row];
 
             if (cluster) {
-                assert(cluster->clusterType == KPClusterGridCellSingle);
+                KPClusterDebug(cluster);
+                
                 assert(cluster->annotationIndex >= 0);
                 assert(cluster->annotationIndex < gridSizeX * gridSizeY);
             }
@@ -311,7 +314,10 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
                 adjacentCellCluster = clusterGrid->grid[adjacentClusterCoordinate.col][adjacentClusterCoordinate.row];
 
                 // In third condition we use bitwise & to check if adjacent cell has distribution of its cluster point which is _complementary_ to a one of the current cell. If it is so, than it worth to make a merge check.
-                if (adjacentCellCluster != NULL && adjacentCellCluster->clusterType != KPClusterGridCellMerged && (KPClusterConformityTable[adjacentClusterPosition] & adjacentCellCluster->distributionQuadrant) != 0) {
+                if (adjacentCellCluster != NULL &&
+                    adjacentCellCluster->clusterType != KPClusterGridCellMerged &&
+                    adjacentCellCluster->clusterType != KPClusterGridCellDoNotRecluster &&
+                    (KPClusterConformityTable[adjacentClusterPosition] & adjacentCellCluster->distributionQuadrant) != 0) {
                     mergeResult = checkClustersAndMergeIfNeeded(currentCellCluster, adjacentCellCluster);
 
                     // The case when other cluster did adsorb current cluster into itself. This means that we must not continue looking for adjacent clusters because we don't have a current cell now.

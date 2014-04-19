@@ -91,8 +91,8 @@ static const int KPAdjacentClustersCoordinateDeltas[8][2] = {
 
 typedef enum : unsigned char {
     KPClusterGridCellSingle = 1,
-    KPClusterGridCellMerger = 2,
-    KPClusterGridCellMerged = 3,
+    KPClusterGridCellMerged = 2,
+    KPClusterGridCellMerger = 3,
     KPClusterGridCellDoNotRecluster = 4,
 } KPClusterGridCellType;
 
@@ -126,9 +126,17 @@ static inline KPClusterDistributionQuadrant KPClusterDistributionQuadrantForPoin
 
 
 typedef struct {
-    kp_cluster_t ***grid;
-
     kp_cluster_t *storage;
+    struct {
+        uint16_t cols;
+        uint16_t rows;
+    } capacity;
+} kp_cluster_storage_t;
+
+
+typedef struct {
+    kp_cluster_t ***grid;
+    kp_cluster_storage_t *storage;
 
     struct {
         int X;
@@ -142,6 +150,11 @@ typedef enum {
     KPClusterMergeResultCurrent = 1,
     KPClusterMergeResultOther = 2,
 } kp_cluster_merge_result_t;
+
+
+void KPClusterStorageRealloc(kp_cluster_storage_t **storage, uint16_t cols, uint16_t rows);
+void KPClusterStorageFree(kp_cluster_storage_t **storage);
+kp_cluster_t * KPClusterStorageCluster(kp_cluster_storage_t *storage, uint16_t col, uint16_t row);
 
 
 void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NSUInteger gridSizeY);

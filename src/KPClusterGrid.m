@@ -9,6 +9,39 @@
 #import "KPClusterGrid.h"
 
 
+void KPClusterStorageRealloc(kp_cluster_storage_t **storage, uint16_t cols, uint16_t rows) {
+    assert(storage);
+
+    kp_cluster_storage_t *_storage;
+
+    if (*storage == NULL) {
+        _storage = calloc(1, sizeof(kp_cluster_storage_t));
+    } else {
+        _storage = *storage;
+    }
+
+    _storage->storage = realloc(_storage->storage, (cols * rows) * sizeof(kp_cluster_t));
+
+    _storage->capacity.cols = cols;
+    _storage->capacity.rows = rows;
+
+    *storage = _storage;
+}
+
+
+void KPClusterStorageFree(kp_cluster_storage_t **storage) {
+    assert(storage && *storage);
+
+    free((*storage)->storage);
+    free((*storage));
+}
+
+
+kp_cluster_t * KPClusterStorageCluster(kp_cluster_storage_t *storage, uint16_t col, uint16_t row) {
+    return (storage->storage + (col - 1) * storage->capacity.rows + (row - 1));
+}
+
+
 void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NSUInteger gridSizeY) {
     assert(clusterGrid);
 
@@ -23,9 +56,9 @@ void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NS
     }
 
     if (_clusterGrid->size.X < gridSizeX || _clusterGrid->size.Y < gridSizeY) {
-        _clusterGrid->storage = realloc(_clusterGrid->storage, (gridSizeX * gridSizeY) * sizeof(kp_cluster_t));
+        KPClusterStorageRealloc(&_clusterGrid->storage, gridSizeY, gridSizeX);
 
-        _clusterGrid->grid    = realloc(_clusterGrid->grid, (gridSizeY + 2) * sizeof(kp_cluster_t **));
+        _clusterGrid->grid = realloc(_clusterGrid->grid, (gridSizeY + 2) * sizeof(kp_cluster_t **));
 
         if (_clusterGrid->grid == NULL || _clusterGrid->storage == NULL) {
             exit(1);
@@ -72,7 +105,8 @@ void KPClusterGridFree(kp_cluster_grid_t *clusterGrid) {
     }
 
     free(clusterGrid->grid);
-    free(clusterGrid->storage);
+
+    KPClusterStorageFree(&clusterGrid->storage);
 }
 
 void KPClusterGridDebug(kp_cluster_grid_t *clusterGrid) {
@@ -81,9 +115,9 @@ void KPClusterGridDebug(kp_cluster_grid_t *clusterGrid) {
             kp_cluster_t *cluster = clusterGrid->grid[col][row];
 
             if (cluster) {
-                printf("[%2d ]  ", cluster->annotationIndex);
+                printf("[%2lu (%d, %d)] ", (unsigned long)cluster->annotationIndex, cluster->clusterType, cluster->distributionQuadrant);
             } else {
-                printf(" NULL  ");
+                printf("    NULL    ");
             }
         }
         printf("\n");
@@ -108,8 +142,6 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
 
     NSLog(@"Gridsize:(%lu, %lu), offset:(%ld, %ld)", (unsigned long)gridSizeX, (unsigned long)gridSizeY, (long)offsetX, (long)offsetY);
 
-
-    
     int numberOfMarginalXCellsToCopyAlongAxisY = (int)(gridSizeY - abs(offsetY));
     int numberOfMarginalYCellsToCopyAlongAxisX = (int)(gridSizeX - abs(offsetX));
 
@@ -117,7 +149,8 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
     int indexOfFirstColumn;
     int indexOfLastColumn;
 
-    if (offsetX != 0) {
+#warning WIP
+    if (NO && offsetX != 0) {
         indexOfEdgeRow = (offsetX > 0) ? (int)gridSizeX : 1;
 
         indexOfFirstColumn = (offsetY >= 0) ? (1 + offsetY)  : 1;
@@ -144,7 +177,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
                 }
             }
 
-            if ((cluster->clusterType == KPClusterGridCellSingle) || ((cluster->clusterType == KPClusterGridCellMerger) && (acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0)) {
+            if ((acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
                 marginalClusterCellBlock(cluster);
             } else {
                 cluster->clusterType = KPClusterGridCellDoNotRecluster;
@@ -160,8 +193,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
                     acceptableDistributionQuadrant = (offsetX > 0) ? (KPClusterDistributionQuadrantFour | KPClusterDistributionQuadrantOne) : KPClusterDistributionQuadrantTwo | KPClusterDistributionQuadrantThree;
 
 
-                    if ((cluster->clusterType == KPClusterGridCellSingle) ||
-                        ((cluster->clusterType == KPClusterGridCellMerger) && ((acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0))) {
+                    if ((acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
                         marginalClusterCellBlock(cluster);
                     } else {
                         cluster->clusterType = KPClusterGridCellDoNotRecluster;
@@ -189,7 +221,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
                     }
                 }
 
-                if ((cluster->clusterType == KPClusterGridCellSingle) || ((cluster->clusterType == KPClusterGridCellMerger) && (acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0)) {
+                if ((acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
                     marginalClusterCellBlock(cluster);
                 } else {
                     cluster->clusterType = KPClusterGridCellDoNotRecluster;
