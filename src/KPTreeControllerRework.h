@@ -33,6 +33,7 @@ typedef struct {
     BOOL clusteringEnabled;
 } KPTreeControllerReworkConfiguration;
 
+
 @interface KPTreeControllerRework : NSObject <KPGridClusteringAlgorithmDelegate>
 
 @property (nonatomic, weak) id <KPTreeControllerReworkDelegate> delegate;
@@ -48,6 +49,7 @@ typedef struct {
              completion:(void (^)(BOOL finished))completion;
 
 @end
+
 
 @protocol KPTreeControllerReworkDelegate <NSObject>
 

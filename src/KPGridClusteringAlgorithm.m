@@ -113,14 +113,14 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
         KPClusterGridDebug(self.clusterGrid);
 
-        KPClusterGridMergeWithOldClusterGrid(&_clusterGrid, offsetX, offsetY, ^(kp_cluster_t *clusterCell) {
+        KPClusterGridMergeWithOldClusterGrid(&_clusterGrid, offsetX, offsetY, ^(kp_cluster_t *cluster) {
             NSLog(@"Handler:");
-            KPClusterDebug(clusterCell);
+            KPClusterDebug(cluster);
 
-            NSLog(@"%@", ([clusterCell->annotation class]));
-            assert([clusterCell->annotation isKindOfClass:[KPAnnotation class]]);
+            NSLog(@"%@", ([cluster->annotation class]));
+            assert([cluster->annotation isKindOfClass:[KPAnnotation class]]);
 
-            [_oldClusters addObject:clusterCell->annotation];
+            [_oldClusters addObject:cluster->annotation];
         });
 
         KPClusterGridDebug(self.clusterGrid);
@@ -149,9 +149,6 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
                 if (cluster) {
                     if (cluster->clusterType == KPClusterGridCellDoNotRecluster) {
-                        cluster->annotationIndex = clusterIndex;
-                        clusterIndex++;
-
                         continue;
                     }
                 } else {
@@ -168,7 +165,7 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
                 KPAnnotation *annotation = [[KPAnnotation alloc] initWithAnnotations:newAnnotations];
                 [_newClusters addObject:annotation];
 
-                kp_cluster_t *cluster = KPClusterStorageCluster(self.clusterGrid->storage, col, row);
+                kp_cluster_t *cluster = KPClusterStorageClusterAdd(self.clusterGrid->storage);
 
                 cluster->mapRect = cellRect;
                 cluster->annotationIndex = clusterIndex;
@@ -253,6 +250,7 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
                 mutableClusters[cl1->annotationIndex] = newAnnotation;
 
+                cl1->annotation = newAnnotation;
                 cl1->distributionQuadrant = KPClusterDistributionQuadrantForPointInsideMapRect(cl1->mapRect, newClusterMapPoint);
                 cl1->clusterType = KPClusterGridCellMerger;
 
@@ -264,6 +262,7 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
                 mutableClusters[cl2->annotationIndex] = newAnnotation;
 
+                cl2->annotation = newAnnotation;
                 cl2->distributionQuadrant = KPClusterDistributionQuadrantForPointInsideMapRect(cl2->mapRect, newClusterMapPoint);
                 cl2->clusterType = KPClusterGridCellMerger;
 

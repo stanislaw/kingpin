@@ -20,7 +20,7 @@
  |  3   4 |
   --------
  */
-typedef enum {
+typedef enum : unsigned char {
     KPClusterDistributionQuadrantOne   = 1 << 0, // Cluster's point is distributed in North East direction from cell's center i.e. cluster.x > cellCenter.x && cluster.y < cellCenter.y (given MKMapPoints: 0, 0 is on north-west...)
     KPClusterDistributionQuadrantTwo   = 1 << 1,
     KPClusterDistributionQuadrantThree = 1 << 2,
@@ -89,7 +89,8 @@ static const int KPAdjacentClustersCoordinateDeltas[8][2] = {
 };
 
 
-typedef enum : unsigned char {
+typedef enum {
+    KPClusterGridCellEmpty  = 0,
     KPClusterGridCellSingle = 1,
     KPClusterGridCellMerged = 2,
     KPClusterGridCellMerger = 3,
@@ -99,8 +100,12 @@ typedef enum : unsigned char {
 
 typedef struct {
     MKMapRect mapRect;
-    NSUInteger annotationIndex;
+
+    uint16_t annotationIndex;
+    uint16_t storageIndex;
+
     KPClusterGridCellType clusterType;
+
     KPClusterDistributionQuadrant distributionQuadrant; // One of 0, 1, 2, 4, 8
     __unsafe_unretained KPAnnotation *annotation;
 } kp_cluster_t;
@@ -127,6 +132,12 @@ static inline KPClusterDistributionQuadrant KPClusterDistributionQuadrantForPoin
 
 typedef struct {
     kp_cluster_t *storage;
+
+    uint16_t used;
+
+    uint16_t freeIndexesCount;
+    uint16_t *freeIndexes;
+
     struct {
         uint16_t cols;
         uint16_t rows;
@@ -154,7 +165,9 @@ typedef enum {
 
 void KPClusterStorageRealloc(kp_cluster_storage_t **storage, uint16_t cols, uint16_t rows);
 void KPClusterStorageFree(kp_cluster_storage_t **storage);
-kp_cluster_t * KPClusterStorageCluster(kp_cluster_storage_t *storage, uint16_t col, uint16_t row);
+kp_cluster_t * KPClusterStorageClusterAdd(kp_cluster_storage_t *storage);
+void KPClusterStorageClusterRemove(kp_cluster_storage_t *storage, kp_cluster_t *cluster);
+void KPClusterStorageDebug(kp_cluster_storage_t *storage);
 
 
 void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NSUInteger gridSizeY);
