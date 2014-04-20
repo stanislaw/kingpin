@@ -114,10 +114,9 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
         KPClusterGridDebug(self.clusterGrid);
 
         KPClusterGridMergeWithOldClusterGrid(&_clusterGrid, offsetX, offsetY, ^(kp_cluster_t *cluster) {
-            NSLog(@"Handler:");
-            KPClusterDebug(cluster);
+            //NSLog(@"Handler:");
+            //KPClusterDebug(cluster);
 
-            NSLog(@"%@", ([cluster->annotation class]));
             assert([cluster->annotation isKindOfClass:[KPAnnotation class]]);
 
             [_oldClusters addObject:cluster->annotation];
@@ -148,8 +147,10 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
                 kp_cluster_t *cluster = self.clusterGrid->grid[col][row];
 
                 if (cluster) {
-                    if (cluster->clusterType == KPClusterGridCellDoNotRecluster) {
+                    if (cluster->doNotRecluster) {
                         continue;
+                    } else {
+                        KPClusterStorageClusterRemove(self.clusterGrid->storage, cluster);
                     }
                 } else {
                     self.clusterGrid->grid[col][row] = NULL;
@@ -298,7 +299,9 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
             currentCellCluster = clusterGrid->grid[col][row];
 
-            if (currentCellCluster == NULL || currentCellCluster->clusterType == KPClusterGridCellMerged || currentCellCluster->clusterType == KPClusterGridCellDoNotRecluster) {
+            if (currentCellCluster == NULL ||
+                currentCellCluster->doNotRecluster ||
+                currentCellCluster->clusterType == KPClusterGridCellMerged) {
                 continue;
             }
 
@@ -314,8 +317,8 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
 
                 // In third condition we use bitwise & to check if adjacent cell has distribution of its cluster point which is _complementary_ to a one of the current cell. If it is so, than it worth to make a merge check.
                 if (adjacentCellCluster != NULL &&
+                    adjacentCellCluster->doNotRecluster == NO &&
                     adjacentCellCluster->clusterType != KPClusterGridCellMerged &&
-                    adjacentCellCluster->clusterType != KPClusterGridCellDoNotRecluster &&
                     (KPClusterConformityTable[adjacentClusterPosition] & adjacentCellCluster->distributionQuadrant) != 0) {
                     mergeResult = checkClustersAndMergeIfNeeded(currentCellCluster, adjacentCellCluster);
 

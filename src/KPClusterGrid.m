@@ -67,9 +67,7 @@ void KPClusterStorageDebug(kp_cluster_storage_t *storage) {
 kp_cluster_t * KPClusterStorageClusterAdd(kp_cluster_storage_t *storage) {
     uint16_t clusterIndex;
 
-    //NSLog(@"KPClusterStorageClusterAdd()");
-
-    //KPClusterStorageDebug(storage);
+    assert(storage->used <= (storage->capacity.cols * storage->capacity.rows));
 
     if (storage->freeIndexesCount == 0) {
         clusterIndex = storage->used++;
@@ -185,6 +183,19 @@ void KPClusterGridDebug(kp_cluster_grid_t *clusterGrid) {
 }
 
 
+void KPClusterGridEnumerate(kp_cluster_grid_t *clusterGrid, void(^clusterBlock)(kp_cluster_t *cluster)) {
+    for (int col = 1; col < (clusterGrid->size.Y + 1); col++) {
+        for (int row = 1; row < (clusterGrid->size.X + 1); row++) {
+            kp_cluster_t *cluster = clusterGrid->grid[col][row];
+
+            if (cluster) {
+                clusterBlock(cluster);
+            }
+        }
+        printf("\n");
+    }
+}
+
 void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInteger offsetY, void(^marginalClusterCellBlock)(kp_cluster_t *cluster)) {
 
     if (offsetX == 0 && offsetY == 0) return;
@@ -197,7 +208,7 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
     NSUInteger gridSizeX = _clusterGrid->size.X;
     NSUInteger gridSizeY = _clusterGrid->size.Y;
 
-
+    
     NSLog(@"Gridsize:(%lu, %lu), offset:(%ld, %ld)", (unsigned long)gridSizeX, (unsigned long)gridSizeY, (long)offsetX, (long)offsetY);
 
     int numberOfMarginalXCellsToCopyAlongAxisY = (int)(gridSizeY - abs(offsetY));
@@ -207,7 +218,12 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
     int indexOfFirstColumn;
     int indexOfLastColumn;
 
-#warning WIP
+
+    KPClusterGridEnumerate(_clusterGrid, ^(kp_cluster_t *cluster) {
+        cluster->doNotRecluster = NO;
+    });
+
+    
     if (NO && offsetX != 0) {
         indexOfEdgeRow = (offsetX > 0) ? (int)gridSizeX : 1;
 
@@ -235,10 +251,10 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
                 }
             }
 
-            if ((acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
+            if (cluster->clusterType != KPClusterGridCellMerged && (acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
                 marginalClusterCellBlock(cluster);
             } else {
-                cluster->clusterType = KPClusterGridCellDoNotRecluster;
+                cluster->doNotRecluster = YES;
             }
         } 
 
@@ -251,10 +267,10 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
                     acceptableDistributionQuadrant = (offsetX > 0) ? (KPClusterDistributionQuadrantFour | KPClusterDistributionQuadrantOne) : KPClusterDistributionQuadrantTwo | KPClusterDistributionQuadrantThree;
 
 
-                    if ((acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
+                    if (cluster->clusterType != KPClusterGridCellMerged && (acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
                         marginalClusterCellBlock(cluster);
                     } else {
-                        cluster->clusterType = KPClusterGridCellDoNotRecluster;
+                        cluster->doNotRecluster = YES;
                     }
                 }
             }
@@ -279,10 +295,10 @@ void KPClusterGridMergeWithOldClusterGrid(kp_cluster_grid_t **clusterGrid, NSInt
                     }
                 }
 
-                if ((acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
+                if (cluster->clusterType != KPClusterGridCellMerged && (acceptableDistributionQuadrant & cluster->distributionQuadrant) != 0) {
                     marginalClusterCellBlock(cluster);
                 } else {
-                    cluster->clusterType = KPClusterGridCellDoNotRecluster;
+                    cluster->doNotRecluster = YES;
                 }
             }
         }
@@ -326,12 +342,12 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
     NSLog(@"KPClusterGridCopy() for offset %d %d", offsetX, offsetY);
     
     kp_cluster_grid_t *_clusterGrid = *clusterGrid;
-    kp_cluster_t *cluster;
 
     NSUInteger gridSizeX = _clusterGrid->size.X;
     NSUInteger gridSizeY = _clusterGrid->size.Y;
 
     if (offsetY > 0) {
+        // +, +
         if (offsetX >= 0) {
             for (int col = 1; col < (1 + offsetY); col++) {
                 for (int row = 1; row < (1 + gridSizeX); row++) {
@@ -360,8 +376,9 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
             }
         }
 
-        // -2, +2
+        // -, +
         else {
+            // -1, 1
             offsetX = abs(offsetX);
 
             for (int col = 1; col < (1 + offsetY); col++) {
@@ -375,7 +392,7 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
                     KPClusterStorageClusterRemove(_clusterGrid->storage, _clusterGrid->grid[col][row]);
                 }
 
-                for (int row = 1; row < (1 + offsetX); row++) {
+                for (int row = 1; row < (gridSizeX + 1 - offsetX); row++) {
                     _clusterGrid->grid[col - offsetY][row + offsetX] = _clusterGrid->grid[col][row];
                 }
 
@@ -392,8 +409,8 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
         }
 
     } else if (offsetY < 0) {
+        // -, -
         if (offsetX <= 0) {
-            // -1, -1
             offsetX = abs(offsetX);
             offsetY = abs(offsetY);
 
@@ -423,7 +440,7 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
                 }
             }
 
-        // +2, -2
+        // +, -
         } else {
             offsetY = abs(offsetY);
 
@@ -433,7 +450,7 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
                 }
             }
 
-            for (int col = 1; col < (1 + offsetY); col++) {
+            for (int col = (gridSizeY - offsetY); col > 0; col--) {
                 for (int row = 1; row < (1 + offsetX); row++) {
                     KPClusterStorageClusterRemove(_clusterGrid->storage, _clusterGrid->grid[col][row]);
                 }
@@ -455,6 +472,7 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
 
         }
     } else {
+        // +, 0
         if (offsetX > 0) {
             for (int col = 1; col < (gridSizeY + 1); col++) {
                 for (int row = 1; row < (1 + offsetX); row++) {
@@ -467,6 +485,8 @@ void KPClusterGridCopy(kp_cluster_grid_t **clusterGrid, NSInteger offsetX, NSInt
                     _clusterGrid->grid[col][row] = NULL;
                 }
             }
+
+        // -, 0
         } else {
             offsetX = abs(offsetX);
 

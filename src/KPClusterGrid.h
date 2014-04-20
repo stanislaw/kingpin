@@ -90,11 +90,9 @@ static const int KPAdjacentClustersCoordinateDeltas[8][2] = {
 
 
 typedef enum {
-    KPClusterGridCellEmpty  = 0,
     KPClusterGridCellSingle = 1,
     KPClusterGridCellMerged = 2,
     KPClusterGridCellMerger = 3,
-    KPClusterGridCellDoNotRecluster = 4,
 } KPClusterGridCellType;
 
 
@@ -104,7 +102,8 @@ typedef struct {
     uint16_t annotationIndex;
     uint16_t storageIndex;
 
-    KPClusterGridCellType clusterType;
+    KPClusterGridCellType clusterType:7;
+    BOOL doNotRecluster:1;
 
     KPClusterDistributionQuadrant distributionQuadrant; // One of 0, 1, 2, 4, 8
     __unsafe_unretained KPAnnotation *annotation;
@@ -173,6 +172,7 @@ void KPClusterStorageDebug(kp_cluster_storage_t *storage);
 void KPClusterGridInit(kp_cluster_grid_t **clusterGrid, NSUInteger gridSizeX, NSUInteger gridSizeY);
 void KPClusterGridFree(kp_cluster_grid_t *clusterGrid);
 void KPClusterGridDebug(kp_cluster_grid_t *clusterGrid);
+void KPClusterGridEnumerate(kp_cluster_grid_t *clusterGrid, void(^clusterBlock)(kp_cluster_t *cluster));
 
 void KPClusterDebug(kp_cluster_t *cluster);
 

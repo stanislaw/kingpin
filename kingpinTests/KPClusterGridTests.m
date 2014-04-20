@@ -196,6 +196,7 @@
         validateNULLMargin(clusterGrid);
     };
 
+#pragma mark +0, +1
 
     // +0, +1
     {
@@ -234,6 +235,8 @@
 
         KPClusterGridDebug(clusterGrid);
     }
+
+#pragma mark +1, 0
 
     // +1, +0
     {
@@ -278,6 +281,8 @@
         KPClusterGridDebug(clusterGrid);
     }
 
+#pragma mark +1, +1
+
     // +1, +1
     {
         fillClusterGrid();
@@ -320,6 +325,8 @@
         KPClusterGridDebug(clusterGrid);
     }
 
+#pragma mark +2, +2
+
     // +2, +2
     {
         fillClusterGrid();
@@ -360,6 +367,7 @@
         KPClusterGridDebug(clusterGrid);
     }
 
+#pragma mark +3, +3
 
     // +3, +3
     {
@@ -399,6 +407,50 @@
         KPClusterGridDebug(clusterGrid);
     }
 
+#pragma mark +1, +2
+
+    // +1, +2
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = 1;
+        NSUInteger offsetY = 2;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 12);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 14);
+        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 15);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 16);
+        XCTAssertTrue(clusterGrid->grid[2][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 10);
+
+        validateNULLMargin(clusterGrid);
+        
+        KPClusterGridDebug(clusterGrid);
+    }
+
+    return;
+
+#pragma mark +2, +1
+
     // +2, +1
     {
         fillClusterGrid();
@@ -436,6 +488,8 @@
 
         KPClusterGridDebug(clusterGrid);
     }
+
+#pragma mark 0, +2
 
     // 0, +2
     {
@@ -477,239 +531,7 @@
         KPClusterGridDebug(clusterGrid);
     }
 
-    // -2, +2
-    {
-        fillClusterGrid();
-
-        KPClusterGridDebug(clusterGrid);
-
-        NSUInteger offsetX = -2;
-        NSUInteger offsetY = 2;
-
-        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
-
-        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 9);
-        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 10);
-
-        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 13);
-        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 14);
-
-        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 12);
-
-        validateNULLMargin(clusterGrid);
-
-        KPClusterGridDebug(clusterGrid);
-    }
-
-    // Negative offsets
-
-    // -1, -1
-    {
-        fillClusterGrid();
-
-        KPClusterGridDebug(clusterGrid);
-
-        NSUInteger offsetX = -1;
-        NSUInteger offsetY = -1;
-
-        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
-
-        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 1);
-        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 2);
-        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 3);
-
-        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 5);
-        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 6);
-        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 7);
-
-        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 9);
-        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 10);
-        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 11);
-
-        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 7);
-
-        validateNULLMargin(clusterGrid);
-
-        KPClusterGridDebug(clusterGrid);
-    }
-
-    // -2, -2
-    {
-        fillClusterGrid();
-
-        KPClusterGridDebug(clusterGrid);
-
-        NSUInteger offsetX = -2;
-        NSUInteger offsetY = -2;
-
-        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
-
-        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 1);
-        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 2);
-
-        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 5);
-        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 6);
-
-        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 12);
-
-        validateNULLMargin(clusterGrid);
-
-        KPClusterGridDebug(clusterGrid);
-    }
-
-    // +2, -2
-    {
-        fillClusterGrid();
-
-        KPClusterGridDebug(clusterGrid);
-
-        NSUInteger offsetX = +2;
-        NSUInteger offsetY = -2;
-
-        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
-
-        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 3);
-        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 4);
-        XCTAssertTrue(clusterGrid->grid[3][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[4][1]->annotationIndex == 7);
-        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 8);
-        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 12);
-
-        validateNULLMargin(clusterGrid);
-
-        KPClusterGridDebug(clusterGrid);
-    }
-    
-    // -2, +2
-    {
-        fillClusterGrid();
-
-        KPClusterGridDebug(clusterGrid);
-
-        NSUInteger offsetX = -2;
-        NSUInteger offsetY = +2;
-
-        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
-
-        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 9);
-        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 10);
-
-        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 13);
-        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 14);
-
-        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
-
-        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 12);
-
-        validateNULLMargin(clusterGrid);
-
-        KPClusterGridDebug(clusterGrid);
-    }
-
-    // -2, 0
-    {
-        fillClusterGrid();
-
-        KPClusterGridDebug(clusterGrid);
-
-        NSUInteger offsetX = -2;
-        NSUInteger offsetY = 0;
-
-        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
-
-        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 1);
-        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 2);
-
-        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 5);
-        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 6);
-
-        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 9);
-        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 10);
-
-        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
-        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 13);
-        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 14);
-
-        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 8);
-
-        validateNULLMargin(clusterGrid);
-
-        KPClusterGridDebug(clusterGrid);
-    }
+#pragma mark +2, 0
 
     // +2, 0
     {
@@ -756,14 +578,416 @@
         XCTAssertTrue(clusterGrid->storage->freeIndexes[5] == 9);
         XCTAssertTrue(clusterGrid->storage->freeIndexes[6] == 12);
         XCTAssertTrue(clusterGrid->storage->freeIndexes[7] == 13);
+        
+        KPClusterGridDebug(clusterGrid);
+    }
+
+
+#pragma mark
+
+#pragma mark 0, -1
+
+    // 0, -1
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = 0;
+        NSUInteger offsetY = -1;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 2);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 3);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 4);
+
+        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 5);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 6);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 8);
+
+        XCTAssertTrue(clusterGrid->grid[4][1]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 12);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 4);
+
+
+        validateNULLMargin(clusterGrid);
+        
+        KPClusterGridDebug(clusterGrid);
+    }
+
+
+#pragma mark -1, 0
+
+    // -1, 0
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = -1;
+        NSUInteger offsetY = 0;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 2);
+        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 3);
+
+        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 5);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 6);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 7);
+
+        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 11);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 13);
+        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 14);
+        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 15);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 4);
+
+        validateNULLMargin(clusterGrid);
+        
+        KPClusterGridDebug(clusterGrid);
+    }
+
+#pragma mark -1, -1
+
+    // -1, -1
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = -1;
+        NSUInteger offsetY = -1;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 2);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 3);
+
+        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 5);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 6);
+        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 7);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 11);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 7);
+
+        validateNULLMargin(clusterGrid);
 
         KPClusterGridDebug(clusterGrid);
     }
 
+#pragma mark -1, +1
+
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = -1;
+        NSUInteger offsetY = +1;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2]->annotationIndex == 5);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 6);
+        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 7);
+
+        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 11);
+
+        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 13);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 14);
+        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 15);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 7);
+
+        validateNULLMargin(clusterGrid);
+        
+        KPClusterGridDebug(clusterGrid);
+    }
+
+#pragma mark +1, -1
+
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = +1;
+        NSUInteger offsetY = -1;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[2][1]->annotationIndex == 2);
+        XCTAssertTrue(clusterGrid->grid[2][2]->annotationIndex == 3);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 4);
+        XCTAssertTrue(clusterGrid->grid[2][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 6);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 8);
+        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[4][1]->annotationIndex == 10);
+        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 11);
+        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 12);
+        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 7);
+
+        validateNULLMargin(clusterGrid);
+        
+        KPClusterGridDebug(clusterGrid);
+    }
+
+#pragma mark -2, -2
+
+    // -2, -2
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = -2;
+        NSUInteger offsetY = -2;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 2);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 5);
+        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 6);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 12);
+
+        validateNULLMargin(clusterGrid);
+
+        KPClusterGridDebug(clusterGrid);
+    }
+
+#pragma mark +2, -2
+
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = +2;
+        NSUInteger offsetY = -2;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[0][0] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[3][1]->annotationIndex == 3);
+        XCTAssertTrue(clusterGrid->grid[3][2]->annotationIndex == 4);
+        XCTAssertTrue(clusterGrid->grid[3][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[4][1]->annotationIndex == 7);
+        XCTAssertTrue(clusterGrid->grid[4][2]->annotationIndex == 8);
+        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 12);
+
+        validateNULLMargin(clusterGrid);
+
+        KPClusterGridDebug(clusterGrid);
+    }
+
+#pragma mark -2, +2
+
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = -2;
+        NSUInteger offsetY = +2;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 10);
+
+        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 13);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 14);
+
+        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 12);
+
+        validateNULLMargin(clusterGrid);
+
+        KPClusterGridDebug(clusterGrid);
+    }
+
+#pragma mark -2, 0
+
+    // -2, 0
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = -2;
+        NSUInteger offsetY = 0;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][3]->annotationIndex == 1);
+        XCTAssertTrue(clusterGrid->grid[1][4]->annotationIndex == 2);
+
+        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][3]->annotationIndex == 5);
+        XCTAssertTrue(clusterGrid->grid[2][4]->annotationIndex == 6);
+
+        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][3]->annotationIndex == 9);
+        XCTAssertTrue(clusterGrid->grid[3][4]->annotationIndex == 10);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][3]->annotationIndex == 13);
+        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 14);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 8);
+
+        validateNULLMargin(clusterGrid);
+
+        KPClusterGridDebug(clusterGrid);
+    }
+
+
+#pragma mark -3, -3
+
+    // -3, -3
+    {
+        fillClusterGrid();
+
+        KPClusterGridDebug(clusterGrid);
+
+        NSUInteger offsetX = -3;
+        NSUInteger offsetY = -3;
+
+        KPClusterGridCopy(&clusterGrid, offsetX, offsetY, nil);
+
+        XCTAssertTrue(clusterGrid->grid[1][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[1][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[2][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[2][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[3][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[3][4] == NULL);
+
+        XCTAssertTrue(clusterGrid->grid[4][1] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][2] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][3] == NULL);
+        XCTAssertTrue(clusterGrid->grid[4][4]->annotationIndex == 1);
+
+        XCTAssertTrue(clusterGrid->storage->freeIndexesCount == 15);
+
+        validateNULLMargin(clusterGrid);
+        
+        KPClusterGridDebug(clusterGrid);
+    }
 }
-
-
-
 @end
 
 
