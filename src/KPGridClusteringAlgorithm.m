@@ -114,11 +114,9 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
         KPClusterGridDebug(self.clusterGrid);
 
         KPClusterGridMergeWithOldClusterGrid(&_clusterGrid, offsetX, offsetY, ^(kp_cluster_t *cluster) {
-            //NSLog(@"Handler:");
-            //KPClusterDebug(cluster);
-
-            assert([cluster->annotation isKindOfClass:[KPAnnotation class]]);
-
+            NSLog(@"Debugging cluster:");
+            KPClusterDebug(cluster);
+            
             [_oldClusters addObject:cluster->annotation];
         });
 
@@ -196,7 +194,7 @@ void MKMapViewDrawMapRect(MKMapView *mapView, MKMapRect mapRect) {
             kp_cluster_t *cluster = self.clusterGrid->grid[col][row];
 
             if (cluster) {
-                KPClusterDebug(cluster);
+                //KPClusterDebug(cluster);
                 
                 assert(cluster->annotationIndex >= 0);
                 assert(cluster->annotationIndex < gridSizeX * gridSizeY);
